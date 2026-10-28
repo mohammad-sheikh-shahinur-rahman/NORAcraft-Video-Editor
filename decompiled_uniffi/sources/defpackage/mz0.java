@@ -1,0 +1,14 @@
+package defpackage;
+
+/* compiled from: r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8 */
+/* loaded from: J:\NORAcraft\classes.dex */
+public final class mz0 {
+    public static final defpackage.mz0 a = new java.lang.Object();
+
+    public final boolean a(android.view.MotionEvent motionEvent, int i) {
+        if ((java.lang.Float.floatToRawIntBits(motionEvent.getRawX(i)) & Integer.MAX_VALUE) < 2139095040 && (java.lang.Float.floatToRawIntBits(motionEvent.getRawY(i)) & Integer.MAX_VALUE) < 2139095040) {
+            return true;
+        }
+        return false;
+    }
+}

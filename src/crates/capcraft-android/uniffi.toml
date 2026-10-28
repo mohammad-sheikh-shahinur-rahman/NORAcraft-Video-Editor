@@ -1,0 +1,5 @@
+# UniFFI bindings of the native library.
+
+[bindings.kotlin]
+package_name = "com.itamadersomajinc.noracraft.core"
+cdylib_name = "capcraft_android"

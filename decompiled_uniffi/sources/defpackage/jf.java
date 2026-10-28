@@ -1,0 +1,18 @@
+package defpackage;
+
+/* compiled from: r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8 */
+/* loaded from: J:\NORAcraft\classes.dex */
+public final class jf {
+    public long a;
+    public long b;
+    public long c;
+    public long d;
+    public int e;
+
+    public static long a(long j, long j2) {
+        if (j2 == 0) {
+            return j;
+        }
+        return (j / 4) + ((j2 / 4) * 3);
+    }
+}

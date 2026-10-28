@@ -1,0 +1,11 @@
+package defpackage;
+
+/* compiled from: r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8 */
+/* loaded from: J:\NORAcraft\classes.dex */
+public abstract /* synthetic */ class x80 {
+    public static final /* synthetic */ int a = 0;
+
+    static {
+        defpackage.vs1.n("kotlinx.coroutines.flow.defaultConcurrency", 16L, 1L, 2147483647L);
+    }
+}

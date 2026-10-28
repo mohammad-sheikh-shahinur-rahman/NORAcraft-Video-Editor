@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NORAcraft Studio</string>
+    <string name="app_full_name">NORAcraft Studio</string>
+    <string name="publisher_name">IT Amadersomaj Inc.</string>
+    <string name="tagline">Create. Edit. Inspire.</string>
+    <string name="share_label">Edit in NORAcraft Studio</string>
+</resources>

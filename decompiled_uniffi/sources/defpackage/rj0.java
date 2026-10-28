@@ -1,0 +1,7 @@
+package defpackage;
+
+/* compiled from: r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8 */
+/* loaded from: J:\NORAcraft\classes.dex */
+public abstract class rj0 {
+    public static final defpackage.mw1 a = new defpackage.sg1(new defpackage.tq(28));
+}

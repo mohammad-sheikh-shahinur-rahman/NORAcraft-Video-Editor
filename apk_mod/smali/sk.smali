@@ -1,0 +1,290 @@
+.class public final Lsk;
+.super Ljava/lang/Object;
+.source "r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8"
+
+# interfaces
+.implements Lys;
+.implements Lzs;
+
+
+# static fields
+.field public static final f:Lfx1;
+
+.field public static final g:Lsk;
+
+
+# instance fields
+.field public final synthetic e:I
+
+
+# direct methods
+.method static synthetic constructor <clinit>()V
+    .locals 2
+
+    .line 1
+    new-instance v0, Lfx1;
+
+    .line 2
+    .line 3
+    const/16 v1, 0x12
+
+    .line 4
+    .line 5
+    invoke-direct {v0, v1}, Lfx1;-><init>(I)V
+
+    .line 6
+    .line 7
+    .line 8
+    sput-object v0, Lsk;->f:Lfx1;
+
+    .line 9
+    .line 10
+    new-instance v0, Lsk;
+
+    .line 11
+    .line 12
+    const/4 v1, 0x1
+
+    .line 13
+    invoke-direct {v0, v1}, Lsk;-><init>(I)V
+
+    .line 14
+    .line 15
+    .line 16
+    sput-object v0, Lsk;->g:Lsk;
+
+    .line 17
+    .line 18
+    return-void
+.end method
+
+.method public synthetic constructor <init>(I)V
+    .locals 0
+
+    .line 1
+    iput p1, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+
+# virtual methods
+.method public final getKey()Lzs;
+    .locals 1
+
+    .line 1
+    iget v0, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    return-object p0
+
+    .line 7
+    :pswitch_0
+    sget-object p0, Lsk;->f:Lfx1;
+
+    .line 8
+    .line 9
+    return-object p0
+
+    .line 10
+    nop
+
+    .line 11
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method
+
+.method public final i(Lat;)Lat;
+    .locals 1
+
+    .line 1
+    iget v0, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    invoke-static {p0, p1}, Lwp;->T(Lys;Lat;)Lat;
+
+    .line 7
+    .line 8
+    .line 9
+    move-result-object p0
+
+    .line 10
+    return-object p0
+
+    .line 11
+    :pswitch_0
+    invoke-static {p0, p1}, Lwp;->T(Lys;Lat;)Lat;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object p0
+
+    .line 15
+    return-object p0
+
+    .line 16
+    nop
+
+    .line 17
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method
+
+.method public final k(Lzs;)Lys;
+    .locals 1
+
+    .line 1
+    iget v0, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    invoke-static {p0, p1}, Lwp;->A(Lys;Lzs;)Lys;
+
+    .line 7
+    .line 8
+    .line 9
+    move-result-object p0
+
+    .line 10
+    return-object p0
+
+    .line 11
+    :pswitch_0
+    invoke-static {p0, p1}, Lwp;->A(Lys;Lzs;)Lys;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object p0
+
+    .line 15
+    return-object p0
+
+    .line 16
+    nop
+
+    .line 17
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method
+
+.method public final p(Llc0;Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 1
+
+    .line 1
+    iget v0, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    invoke-interface {p1, p2, p0}, Llc0;->g(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 7
+    .line 8
+    .line 9
+    move-result-object p0
+
+    .line 10
+    return-object p0
+
+    .line 11
+    :pswitch_0
+    invoke-interface {p1, p2, p0}, Llc0;->g(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object p0
+
+    .line 15
+    return-object p0
+
+    .line 16
+    nop
+
+    .line 17
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method
+
+.method public final t(Lzs;)Lat;
+    .locals 1
+
+    .line 1
+    iget v0, p0, Lsk;->e:I
+
+    .line 2
+    .line 3
+    packed-switch v0, :pswitch_data_0
+
+    .line 4
+    .line 5
+    .line 6
+    invoke-static {p0, p1}, Lwp;->N(Lys;Lzs;)Lat;
+
+    .line 7
+    .line 8
+    .line 9
+    move-result-object p0
+
+    .line 10
+    return-object p0
+
+    .line 11
+    :pswitch_0
+    invoke-static {p0, p1}, Lwp;->N(Lys;Lzs;)Lat;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object p0
+
+    .line 15
+    return-object p0
+
+    .line 16
+    nop
+
+    .line 17
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_0
+    .end packed-switch
+.end method

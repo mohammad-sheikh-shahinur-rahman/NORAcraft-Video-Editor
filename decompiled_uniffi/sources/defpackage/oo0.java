@@ -1,0 +1,24 @@
+package defpackage;
+
+/* compiled from: r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8 */
+/* loaded from: J:\NORAcraft\classes.dex */
+public final class oo0 extends defpackage.qy0 implements defpackage.za1 {
+    public float s;
+    public boolean t;
+
+    @Override // defpackage.za1
+    public final java.lang.Object u0(java.lang.Object obj) {
+        defpackage.mk1 mk1Var;
+        if (obj instanceof defpackage.mk1) {
+            mk1Var = (defpackage.mk1) obj;
+        } else {
+            mk1Var = null;
+        }
+        if (mk1Var == null) {
+            mk1Var = new defpackage.mk1();
+        }
+        mk1Var.a = this.s;
+        mk1Var.b = this.t;
+        return mk1Var;
+    }
+}

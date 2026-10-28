@@ -1,0 +1,30 @@
+version: 2.10.0
+apkFileName: capcraft-0.0.2.apk
+isFrameworkApk: false
+usesFramework:
+  ids:
+  - 1
+  tag: null
+sdkInfo:
+  minSdkVersion: 29
+  targetSdkVersion: 36
+packageInfo:
+  forcedPackageId: 127
+  renameManifestPackage: null
+versionInfo:
+  versionCode: 1000099
+  versionName: 1.0.0
+resourcesAreCompressed: false
+sharedLibrary: false
+sparseResources: false
+unknownFiles:
+  DebugProbesKt.bin: 8
+doNotCompress:
+- classes.dex
+- resources.arsc
+- lib/arm64-v8a/libandroidx.graphics.path.so
+- lib/arm64-v8a/libc++_shared.so
+- lib/arm64-v8a/libcapcraft_android.so
+- lib/arm64-v8a/libjnidispatch.so
+- lib/arm64-v8a/libonnxruntime.so
+- lib/arm64-v8a/libsherpa-onnx-c-api.so

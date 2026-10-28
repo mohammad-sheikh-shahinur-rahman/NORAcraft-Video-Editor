@@ -1,0 +1,42 @@
+NORAcraft Video Editor
+Copyright (c) 2026 IT Amadersomaj Inc. and NORAcraft contributors.
+Portions copyright (c) 2026 ArtCraft Team and the CapCraft contributors.
+Portions copyright (c) 2026 Jareer and Concat contributors.
+
+This repository holds the Android application and native video editing engine crates under src/crates/
+and the mobile build scripts under src/scripts/.
+
+Concat is copyright Jareer and the Concat contributors. CapCraft is copyright ArtCraft Team and the
+CapCraft contributors. NORAcraft is published by IT Amadersomaj Inc. All are licensed under the
+GNU Affero General Public License, version 3 or (at your option) any later version (LICENSE), with
+Concat's plugin exception (LICENSE-EXCEPTIONS.md). NORAcraft is an independent release shipped under
+its own name, original branding and icon.
+
+NORAcraft is not affiliated with, endorsed by or connected to ByteDance or CapCut.
+
+Third-party material
+
+The engine's third-party notices (FFmpeg, whisper.cpp, ONNX Runtime, sherpa-onnx, fonts, models
+and more) are in THIRD_PARTY_NOTICES.md. The Android app's own notices are in
+src/crates/capcraft-android/NOTICE.md, and the app displays both in its settings.
+
+Android app (src/crates/capcraft-android):
+- Lucide icons (src/crates/capcraft-android/assets/icons) — ISC License. See
+  assets/icons/LICENSE-lucide.txt. The app compiles them into Compose path data at build time.
+- Material Symbols (src/crates/capcraft-android/assets/icons-material) — Apache-2.0. See
+  assets/icons-material/LICENSE-material-symbols.txt.
+- NORAcraft launcher and brand icons — Copyright (c) 2026 IT Amadersomaj Inc., AGPL-3.0-or-later.
+- UniFFI (https://github.com/mozilla/uniffi-rs) — MPL-2.0: the uniffi crate in the library, and the
+  generator of the Kotlin bindings.
+- JNA (https://github.com/java-native-access/jna) — Apache-2.0 (dual-licensed with LGPL-2.1; used
+  under Apache-2.0).
+- AndroidX, Jetpack Compose, Material 3 and kotlinx.coroutines — Apache-2.0.
+
+Built during the build, never committed in this repository:
+- FFmpeg (LGPL-2.1-or-later), compiled from source by src/scripts/ffmpeg-mobile.sh.
+- sherpa-onnx runtime libraries (Apache-2.0, Xiaomi Corporation / k2-fsa), fetched by
+  src/scripts/sherpa-mobile.sh.
+
+Downloaded at runtime, only when the user explicitly requests those features:
+speech recognition, voice isolation, background removal and picture enhancement models, each under
+the license listed in THIRD_PARTY_NOTICES.md.

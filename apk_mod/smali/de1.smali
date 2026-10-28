@@ -1,0 +1,49 @@
+.class public final Lde1;
+.super Les;
+.source "r8-map-id-358bc56d217bc3d6e50cbda3d3bdb28914727617ab52f03cfe910a8e7f6a8ac8"
+
+
+# instance fields
+.field public synthetic h:Ljava/lang/Object;
+
+.field public i:I
+
+
+# virtual methods
+.method public final q(Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 1
+
+    .line 1
+    iput-object p1, p0, Lde1;->h:Ljava/lang/Object;
+
+    .line 2
+    .line 3
+    iget p1, p0, Lde1;->i:I
+
+    .line 4
+    .line 5
+    const/high16 v0, -0x80000000
+
+    .line 6
+    .line 7
+    or-int/2addr p1, v0
+
+    .line 8
+    iput p1, p0, Lde1;->i:I
+
+    .line 9
+    .line 10
+    const/4 p1, 0x0
+
+    .line 11
+    invoke-static {p1, p1, p0}, Lfe1;->a(Ltr0;Lr6;Les;)V
+
+    .line 12
+    .line 13
+    .line 14
+    sget-object p0, Lmt;->e:Lmt;
+
+    .line 15
+    .line 16
+    return-object p0
+.end method

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original NORAcraft geometric N with integrated play symbol. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFC084FC"
+        android:pathData="M28,25 H42 L79,57 V25 H91 V83 H78 L41,51 V83 H28 Z" />
+    <path
+        android:fillColor="#FF8B5CF6"
+        android:pathData="M28,25 H42 L79,57 V25 H91 V39 L78,39 L41,71 V83 H28 Z" />
+    <path
+        android:fillColor="#FF4C1D95"
+        android:pathData="M44,48 L61,58 L44,68 Z" />
+</vector>
