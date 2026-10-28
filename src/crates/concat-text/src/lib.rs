@@ -3437,4 +3437,29 @@ mod tests {
         assert!(out.width > 0, "rendered Bengali text has positive width");
     }
 
- 
+    #[test]
+    fn test_fontdb_query_for_ador_noirrit() {
+        let mut fonts = Fonts::new();
+        let path = std::path::Path::new("J:/NORAcraft/fonts/Bangla/আদর নরিত.ttf");
+        assert!(fonts.add_file(path));
+        
+        let mut st = style("তহারবগাকা");
+        st.font_family = "Li Ador Noirrit Unicode".to_owned();
+        st.font_weight = 700.0;
+        
+        let id = fonts.pick(&st).expect("picks font");
+        if let Some(info) = fonts.db.face(id) {
+            println!("Picked face info families: {:?}", info.families);
+            println!("Picked face weight: {:?}", info.weight);
+        }
+        fonts.db.with_face_data(id, |data, index| {
+            let face = ttf_parser::Face::parse(data, index).expect("parse face");
+            println!("Glyph for ত (U+09A4): {:?}", face.glyph_index('ত'));
+            assert!(face.glyph_index('ত').is_some(), "Must have glyph for ত");
+        });
+        let out = render(&fonts, &st, 640, 360).expect("renders");
+        println!("Rendered words count: {}", out.words.len());
+        println!("Rendered png size: {}", out.png.len());
+        assert!(out.width > 0, "rendered width > 0");
+    }
+}
