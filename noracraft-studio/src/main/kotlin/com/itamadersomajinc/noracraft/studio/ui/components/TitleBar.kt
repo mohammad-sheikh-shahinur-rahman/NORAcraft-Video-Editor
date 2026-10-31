@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Redo
-import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -39,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.itamadersomajinc.noracraft.studio.state.CanvasAspectRatio
 import com.itamadersomajinc.noracraft.studio.state.StudioProjectState
 import com.itamadersomajinc.noracraft.studio.ui.theme.StudioColors
+import java.awt.FileDialog
+import java.awt.Frame
 
 @Composable
 fun StudioTitleBar(
@@ -52,11 +56,11 @@ fun StudioTitleBar(
             .fillMaxWidth()
             .height(52.dp)
             .background(StudioColors.SurfaceDark)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Left: Branding & Project Name
+        // Left: App Logo, Title & Project Pill
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
@@ -77,7 +81,7 @@ fun StudioTitleBar(
                 text = "NoraCraft Studio",
                 color = StudioColors.TextPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 15.sp
             )
             Spacer(modifier = Modifier.width(6.dp))
             Box(
@@ -87,14 +91,15 @@ fun StudioTitleBar(
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "PRO",
+                    text = "PRO 64-BIT",
                     color = StudioColors.Primary,
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(modifier = Modifier.width(20.dp))
-            // Project Name Pill
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Project File Name Pill
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -104,8 +109,29 @@ fun StudioTitleBar(
                 Text(
                     text = state.projectName,
                     color = StudioColors.TextSecondary,
-                    fontSize = 13.sp
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
                 )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // Quick Save / Open Project
+            IconButton(
+                onClick = {
+                    saveProjectDialog(state)
+                },
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(Icons.Default.Save, contentDescription = "Save Project (Ctrl+S)", tint = StudioColors.TextSecondary, modifier = Modifier.size(16.dp))
+            }
+            IconButton(
+                onClick = {
+                    openProjectDialog(state)
+                },
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(Icons.Default.FolderOpen, contentDescription = "Open Project (Ctrl+O)", tint = StudioColors.TextSecondary, modifier = Modifier.size(16.dp))
             }
         }
 
@@ -113,28 +139,28 @@ fun StudioTitleBar(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 onClick = { /* Undo */ },
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(30.dp)
             ) {
                 Icon(
-                    Icons.Default.Undo,
+                    Icons.AutoMirrored.Filled.Undo,
                     contentDescription = "Undo",
                     tint = StudioColors.TextSecondary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
             IconButton(
                 onClick = { /* Redo */ },
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(30.dp)
             ) {
                 Icon(
-                    Icons.Default.Redo,
+                    Icons.AutoMirrored.Filled.Redo,
                     contentDescription = "Redo",
                     tint = StudioColors.TextSecondary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             // Canvas Aspect Ratio Dropdown
             Box {
@@ -208,4 +234,30 @@ fun StudioTitleBar(
             }
         }
     }
+}
+
+private fun saveProjectDialog(state: StudioProjectState) {
+    try {
+        val dialog = FileDialog(null as Frame?, "প্রজেক্ট সেভ করুন (.nora)", FileDialog.SAVE)
+        dialog.file = "${state.projectName}.nora"
+        dialog.isVisible = true
+        val file = dialog.file
+        val dir = dialog.directory
+        if (file != null && dir != null) {
+            state.projectFilePath = "$dir$file"
+        }
+    } catch (e: Exception) {}
+}
+
+private fun openProjectDialog(state: StudioProjectState) {
+    try {
+        val dialog = FileDialog(null as Frame?, "প্রজেক্ট ফাইল ওপেন করুন (.nora)", FileDialog.LOAD)
+        dialog.isVisible = true
+        val file = dialog.file
+        val dir = dialog.directory
+        if (file != null && dir != null) {
+            state.projectFilePath = "$dir$file"
+            state.projectName = file.removeSuffix(".nora")
+        }
+    } catch (e: Exception) {}
 }
