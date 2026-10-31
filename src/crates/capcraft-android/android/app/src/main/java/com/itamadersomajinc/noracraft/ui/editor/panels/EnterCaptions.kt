@@ -48,6 +48,7 @@ import com.itamadersomajinc.noracraft.core.Voice
 import com.itamadersomajinc.noracraft.core.cancelSpeech
 import com.itamadersomajinc.noracraft.core.downloadSpeechModel
 import com.itamadersomajinc.noracraft.core.voiceModels
+import com.itamadersomajinc.noracraft.engine.BanglaSpeechSynthesizer
 import com.itamadersomajinc.noracraft.core.voices
 import com.itamadersomajinc.noracraft.engine.ModelManager
 import com.itamadersomajinc.noracraft.engine.Threads
@@ -95,23 +96,48 @@ fun EnterCaptionsPage(vm: EditorViewModel) {
     LaunchedEffect(refresh) {
         withContext(Threads.thumbnails) {
             // the compact Kokoro first, as text to speech picks it: the smallest download with many voices
-            runCatching {
+            val m = runCatching {
                 voiceModels().sortedBy { m -> if (m.id.contains("kokoro-int8")) 0 else if (m.id.contains("kokoro")) 1 else 2 }.firstOrNull()
-            }.getOrNull() to runCatching { voices().filter { !it.name.contains("clone", ignoreCase = true) } }.getOrDefault(emptyList())
+            }.getOrNull()
+            val v = runCatching { voices().filter { !it.name.contains("clone", ignoreCase = true) } }.getOrDefault(emptyList())
+            val allVoices = mutableListOf<Voice>()
+            allVoices.addAll(BanglaSpeechSynthesizer.getBengaliVoices())
+            allVoices.addAll(v.filter { m == null || it.family == m.family })
+            m to allVoices
         }.let { (m, v) ->
             model = m
-            voiceList = v.filter { m == null || it.family == m.family }.take(24)
+            voiceList = v.take(30)
             if (voice == null) voice = voiceList.firstOrNull()?.id
         }
     }
-    DisposableEffect(Unit) { onDispose { if (busy != null) runCatching { cancelSpeech() } } }
+    DisposableEffect(Unit) { onDispose { if (busy != null) runCatching { cancelSpeech(); BanglaSpeechSynthesizer.cancel() } } }
 
     fun make() {
         val s = vm.session ?: return
         val at = vm.playhead
         val m = model
         val v = voice
-        if (!voiceover || m == null || v == null) {
+        if (!voiceover || v == null) {
+            vm.edit { enterCaptions(words, at) }
+            vm.panel = null
+            vm.message = "Captions added"
+            return
+        }
+        if (v in 1001..1004) {
+            vm.edit { enterCaptions(words, at) }
+            busy = "Reading aloud" to 0f
+            BanglaSpeechSynthesizer.synthesize(
+                context = vm.getApplication(),
+                session = s,
+                text = words,
+                atUs = at,
+                voiceId = v,
+                listener = listener(scope, vm, { busy = it }, { refresh++; if (afterDownload) { afterDownload = false } }),
+                coroutineScope = scope,
+            )
+            return
+        }
+        if (m == null) {
             vm.edit { enterCaptions(words, at) }
             vm.panel = null
             vm.message = "Captions added"
@@ -251,8 +277,11 @@ fun EnterCaptionsPage(vm: EditorViewModel) {
     }
 }
 
-/** A voice's name as people read it: "af_heart" is Heart. */
-private fun voiceName(raw: String): String = raw.split('_').last().replaceFirstChar { it.uppercase() }
+/** A voice's name as people read it: "af_heart" is Heart, "bn_female_shreya" is শ্রেয়া (নারী). */
+private fun voiceName(raw: String): String = when {
+    raw.startsWith("bn_") -> BanglaSpeechSynthesizer.voiceLabel(raw)
+    else -> raw.split('_').last().replaceFirstChar { it.uppercase() }
+}
 
 /** Reports a speech job on the page, and closes it with the captions made. */
 private fun listener(

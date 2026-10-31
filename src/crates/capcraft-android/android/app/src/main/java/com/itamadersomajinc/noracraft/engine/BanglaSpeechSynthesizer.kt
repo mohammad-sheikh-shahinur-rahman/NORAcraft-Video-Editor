@@ -39,6 +39,14 @@ object BanglaSpeechSynthesizer {
         Voice(id = 1004, name = "bn_male_rahim", family = "bangla")
     )
 
+    fun voiceLabel(raw: String): String = when (raw) {
+        "bn_female_shreya" -> "শ্রেয়া (নারী)"
+        "bn_male_tanvir" -> "তানভীর (পুরুষ)"
+        "bn_female_priya" -> "প্রিয়া (নারী)"
+        "bn_male_rahim" -> "রহিম (পুরুষ)"
+        else -> raw.removePrefix("bn_").replace('_', ' ').replaceFirstChar { it.uppercase() }
+    }
+
     fun cancel() {
         isCancelled.set(true)
         activeTts.getAndSet(null)?.let { tts ->

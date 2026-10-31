@@ -44,14 +44,24 @@ pub struct ExportSettings {
 }
 
 /// The size of an export at `resolution` for a `width` by `height` canvas.
+///
+/// The output is always at least 256 px on the short side and always even, so
+/// MediaCodec encoders on MediaTek / Infinix chips (which refuse widths below
+/// ~256 px with BAD_VALUE) can open.
 #[uniffi::export]
 pub fn export_size(width: u32, height: u32, resolution: u32) -> Vec<u32> {
     let short = width.min(height).max(1);
     let scale = f64::from(resolution.max(2)) / f64::from(short);
-    vec![
-        even((f64::from(width) * scale).round() as u32),
-        even((f64::from(height) * scale).round() as u32),
-    ]
+    let out_w = (f64::from(width) * scale).round() as u32;
+    let out_h = (f64::from(height) * scale).round() as u32;
+    // MediaCodec on MediaTek / Infinix phones rejects widths (and heights)
+    // below 256 px with BAD_VALUE / "Resolution not supported".  Clamp each
+    // side to at least 256 before the even-align so the encoder always opens.
+    // Portrait videos have a very small width at small resolutions, which is
+    // what triggers the bug on this chipset.
+    let out_w = even(out_w.max(256));
+    let out_h = even(out_h.max(256));
+    vec![out_w, out_h]
 }
 
 /// A bitrate for a frame size and rate that looks right on a phone: about
@@ -133,7 +143,13 @@ impl MobileSession {
     ) -> Result<concat_export::ExportRequest, MobileError> {
         self.with_session(|session| {
             let canvas = session.settings();
-            let size = export_size(canvas.width, canvas.height, settings.resolution);
+            // Clamp the export resolution to at least 360 p so MediaCodec
+            // encoders on phones that reject very small dimensions (e.g.
+            // MediaTek / Infinix) can open.  The UI already shows 360 p as
+            // the lowest preset; this protects projects whose canvas is
+            // smaller than the chosen resolution.
+            let clamped_resolution = settings.resolution.max(360);
+            let size = export_size(canvas.width, canvas.height, clamped_resolution);
             let (width, height) = (size[0], size[1]);
             let bitrate = if settings.bitrate_kbps > 0 {
                 settings.bitrate_kbps

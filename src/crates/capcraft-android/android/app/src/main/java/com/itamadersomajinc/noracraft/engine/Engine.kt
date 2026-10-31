@@ -19,12 +19,20 @@ object Threads {
     val thumbnails: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(2)
 }
 
-/** A message for the user from anything the engine (or the system) threw. */
+/**
+ * A message for the user from anything the engine (or the system) threw.
+ * The engine's own errors name the file they happened to by its path in the
+ * app's private storage - useful in a log, meaningless to a person, and not
+ * something a shared screenshot can give away - so paths out of it are
+ * replaced with what the file is.
+ */
+private val PRIVATE_PATH: Regex = Regex("/data/(user|android_data|media)/0/\\S+")
+
 val Throwable.userMessage: String
     get() = when (this) {
         is MobileException -> message?.takeIf { it.isNotBlank() } ?: "Something went wrong."
         else -> message?.takeIf { it.isNotBlank() && !it.contains("Exception") } ?: "Something went wrong."
-    }
+    }.replace(PRIVATE_PATH, "the export file")
 
 /** A picture's pixels as a new bitmap. */
 fun Picture.toBitmap(): Bitmap? = intoBitmap(null)

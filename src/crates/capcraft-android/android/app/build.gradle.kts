@@ -50,7 +50,9 @@ val appVersionCode: Int = run {
 
 // The release key, when the build is given one.
 val releaseKeystore: String? = providers.environmentVariable("NORACRAFT_KEYSTORE")
-    .orElse(providers.environmentVariable("CAPCRAFT_KEYSTORE")).orNull
+    .orElse(providers.environmentVariable("CAPCRAFT_KEYSTORE"))
+    .orElse(providers.gradleProperty("noracraft.keystore"))
+    .orElse(providers.gradleProperty("capcraft.keystore")).orNull
 val unsignedRelease: Boolean = (providers.gradleProperty("noracraft.unsigned")
     .orElse(providers.gradleProperty("capcraft.unsigned")).orNull == "true")
 
@@ -395,11 +397,17 @@ android {
             create("release") {
                 storeFile = file(releaseKeystore)
                 storePassword = providers.environmentVariable("NORACRAFT_KEYSTORE_PASSWORD")
-                    .orElse(providers.environmentVariable("CAPCRAFT_KEYSTORE_PASSWORD")).orNull
+                    .orElse(providers.environmentVariable("CAPCRAFT_KEYSTORE_PASSWORD"))
+                    .orElse(providers.gradleProperty("noracraft.keystorePassword"))
+                    .orElse(providers.gradleProperty("capcraft.keystorePassword")).orNull
                 keyAlias = providers.environmentVariable("NORACRAFT_KEY_ALIAS")
-                    .orElse(providers.environmentVariable("CAPCRAFT_KEY_ALIAS")).orNull
+                    .orElse(providers.environmentVariable("CAPCRAFT_KEY_ALIAS"))
+                    .orElse(providers.gradleProperty("noracraft.keyAlias"))
+                    .orElse(providers.gradleProperty("capcraft.keyAlias")).orNull
                 keyPassword = providers.environmentVariable("NORACRAFT_KEY_PASSWORD")
-                    .orElse(providers.environmentVariable("CAPCRAFT_KEY_PASSWORD")).orNull
+                    .orElse(providers.environmentVariable("CAPCRAFT_KEY_PASSWORD"))
+                    .orElse(providers.gradleProperty("noracraft.keyPassword"))
+                    .orElse(providers.gradleProperty("capcraft.keyPassword")).orNull
             }
         }
     }

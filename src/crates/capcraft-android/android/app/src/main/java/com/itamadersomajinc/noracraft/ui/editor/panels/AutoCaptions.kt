@@ -71,6 +71,8 @@ private class CaptionLook(
 
 private val CAPTION_LOOKS = listOf(
     CaptionLook("Default"),
+    CaptionLook("বাংলা (সিলিগুরি)", stroke = "#000000", family = "Hind Siliguri", weight = 700),
+    CaptionLook("বাংলা (হলুদ)", color = "#ffd60a", stroke = "#000000", family = "Hind Siliguri", weight = 700),
     CaptionLook("Outline", stroke = "#000000"),
     CaptionLook("Yellow", color = "#ffd60a", stroke = "#000000", family = "Montserrat", weight = 900),
     CaptionLook("Boxed", plate = "#000000"),
@@ -143,10 +145,12 @@ fun CaptionTemplatesPanel(vm: EditorViewModel) {
 }
 
 /** The language a caption model hears, as the sheet names it. */
-private fun languageOf(m: SpeechModel): String = when (m.id) {
-    "tiny" -> "Auto detect (fast)"
-    "base" -> "Auto detect"
-    "base.en" -> "English"
+private fun languageOf(m: SpeechModel): String = when {
+    m.label.isNotBlank() && m.label != m.id -> m.label
+    m.id == "tiny" -> "Auto detect (fast)"
+    m.id == "base" -> "Auto detect"
+    m.id == "base.en" -> "English"
+    m.id == "small" -> "Auto detect (high accuracy)"
     else -> m.label
 }
 
@@ -172,7 +176,49 @@ fun AutoCaptionsSheet(vm: EditorViewModel, lyrics: Boolean = false) {
 
     LaunchedEffect(refresh) {
         models = withContext(Threads.thumbnails) {
-            runCatching { captionModels().filter { it.id == "tiny" || it.id == "base" || it.id == "base.en" } }.getOrDefault(emptyList())
+            runCatching {
+                val available = captionModels()
+                val list = mutableListOf<SpeechModel>()
+                // Explicit Bengali speech recognition models (Whisper Multilingual)
+                list.add(
+                    SpeechModel(
+                        id = "base",
+                        label = "বাংলা (Base · স্ট্যান্ডার্ড)",
+                        family = "whisper",
+                        sizeBytes = 147_951_465uL,
+                        downloaded = ModelManager.isReady("base")
+                    )
+                )
+                list.add(
+                    SpeechModel(
+                        id = "tiny",
+                        label = "বাংলা (Tiny · দ্রুত)",
+                        family = "whisper",
+                        sizeBytes = 77_691_713uL,
+                        downloaded = ModelManager.isReady("tiny")
+                    )
+                )
+                list.add(
+                    SpeechModel(
+                        id = "small",
+                        label = "বাংলা (Small · উন্নত)",
+                        family = "whisper",
+                        sizeBytes = 487_601_967uL,
+                        downloaded = ModelManager.isReady("small")
+                    )
+                )
+                // General auto-detect & English
+                available.find { it.id == "tiny" }?.let {
+                    list.add(it.copy(label = "Auto detect (fast)"))
+                }
+                available.find { it.id == "base" }?.let {
+                    list.add(it.copy(label = "Auto detect"))
+                }
+                available.find { it.id == "base.en" }?.let {
+                    list.add(it.copy(label = "English"))
+                }
+                list
+            }.getOrDefault(emptyList())
         }
     }
     DisposableEffect(Unit) { onDispose { if (job != null) runCatching { cancelSpeech() } } }
@@ -286,7 +332,7 @@ fun AutoCaptionsSheet(vm: EditorViewModel, lyrics: Boolean = false) {
                         ) {
                             Text(languageOf(option), style = Type.Body.copy(color = if (i == model) Palette.Accent else Palette.Text), modifier = Modifier.weight(1f))
                             Text(
-                                mb(option.sizeBytes) + if (option.downloaded) "" else "  ↓",
+                                mb(option.sizeBytes) + if (option.downloaded || ModelManager.isReady(option.id)) "" else "  ↓",
                                 style = Type.Small.copy(color = Palette.TextSecondary),
                             )
                         }
@@ -336,7 +382,7 @@ fun AutoCaptionsSheet(vm: EditorViewModel, lyrics: Boolean = false) {
                 Text(
                     when {
                         running != null -> "${running.first} ${(running.second * 100).toInt()}%"
-                        m != null && !m.downloaded -> "Download and generate (${mb(m.sizeBytes)})"
+                        m != null && !m.downloaded && !ModelManager.isReady(m.id) -> "Download and generate (${mb(m.sizeBytes)})"
                         else -> "Generate"
                     },
                     style = Type.BodyStrong.copy(fontSize = 16.sp, color = if (running == null) Palette.OnAccent else Palette.Text),

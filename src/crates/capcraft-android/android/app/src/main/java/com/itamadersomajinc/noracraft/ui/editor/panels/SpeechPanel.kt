@@ -240,13 +240,15 @@ fun SpeechPanel(vm: EditorViewModel, captions: Boolean, clipId: String?) {
             Spacer(Modifier.height(8.dp))
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 models.forEachIndexed { i, m ->
-                    val label = when (m.id) {
-                        "tiny" -> "Auto (fast)"
-                        "base" -> "Auto"
-                        "base.en" -> "English"
+                    val label = when {
+                        m.label.startsWith("বাংলা") -> m.label
+                        m.id == "tiny" -> "Auto (fast)"
+                        m.id == "base" -> "Auto"
+                        m.id == "base.en" -> "English"
                         else -> m.label
                     }
-                    Chip("$label · ${mb(m.sizeBytes)}${if (m.downloaded || ModelManager.isReady(m.id)) "" else " ↓"}", i == model) { model = i }
+                    val sizeLabel = if (m.sizeBytes == 0uL) "Instant" else mb(m.sizeBytes)
+                    Chip("$label · $sizeLabel${if (m.downloaded || ModelManager.isReady(m.id)) "" else " ↓"}", i == model) { model = i }
                 }
             }
             if (!captions) {
@@ -275,14 +277,14 @@ fun SpeechPanel(vm: EditorViewModel, captions: Boolean, clipId: String?) {
                         trackColor = Palette.Disabled,
                     )
                     Spacer(Modifier.height(10.dp))
-                    Text("Cancel", style = Type.BodyStrong, modifier = Modifier.clickable { runCatching { cancelSpeech() }; job = Job.Idle })
+                    Text("Cancel", style = Type.BodyStrong, modifier = Modifier.clickable { runCatching { cancelSpeech(); BanglaSpeechSynthesizer.cancel() }; job = Job.Idle })
                 }
                 Job.Idle -> {
                     val m = chosen
                     val ready = m?.let { it.downloaded || ModelManager.isReady(it.id) } == true
                     val label = when {
                         m == null -> "…"
-                        !ready -> "Download (${mb(m.sizeBytes)})"
+                        !ready -> "Download (${if (m.sizeBytes == 0uL) "Instant" else mb(m.sizeBytes)})"
                         captions -> "Generate"
                         else -> "Generate"
                     }
@@ -307,13 +309,38 @@ fun SpeechPanel(vm: EditorViewModel, captions: Boolean, clipId: String?) {
                                     }
                                 } else {
                                     val v = voice ?: return@clickable
-                                    if (typed && words.isBlank()) return@clickable
+                                    val targetClip = if (clipId != null) {
+                                        vm.timeline?.rows.orEmpty().flatMap { it.clips }.find { it.id == clipId }
+                                    } else null
+                                    val textToRead = if (clipId != null) {
+                                        targetClip?.text ?: ""
+                                    } else {
+                                        words
+                                    }
+                                    if (textToRead.isBlank()) {
+                                        vm.message = "There are no words to read."
+                                        return@clickable
+                                    }
                                     job = Job.Running("Generating", 0f)
-                                    val at = vm.playhead
-                                    scope.launch(Threads.commands) {
-                                        runCatching {
-                                            if (clipId == null) s.speakText(words, at, target.id, v, listener) else s.textToSpeech(clipId, target.id, v, listener)
-                                        }.onFailure { e -> launch(Dispatchers.Main) { job = Job.Idle; vm.message = e.userMessage } }
+                                    val at = targetClip?.startUs ?: vm.playhead
+
+                                    if (target.family == "bangla" || target.id == "bangla-neural" || v in 1001..1004) {
+                                        BanglaSpeechSynthesizer.synthesize(
+                                            context = vm.getApplication(),
+                                            session = s,
+                                            text = textToRead,
+                                            atUs = at,
+                                            voiceId = v,
+                                            listener = listener,
+                                            coroutineScope = scope
+                                        )
+                                    } else {
+                                        scope.launch(Threads.commands) {
+                                            runCatching {
+                                                if (clipId == null) s.speakText(words, at, target.id, v, listener)
+                                                else s.textToSpeech(clipId, target.id, v, listener)
+                                            }.onFailure { e -> launch(Dispatchers.Main) { job = Job.Idle; vm.message = e.userMessage } }
+                                        }
                                     }
                                 }
                             },
@@ -338,8 +365,17 @@ private fun Chip(label: String, selected: Boolean, onClick: () -> Unit) {
     ) { Text(label, style = Type.Small.copy(color = if (selected) Palette.Black else Palette.Text)) }
 }
 
-/** A voice's name as people read it: "af_heart" is Heart (US), "bm_george" George (UK). */
+/** A voice's name as people read it: "af_heart" is Heart (US), "bm_george" George (UK), "bn_female_shreya" is শ্রেয়া (নারী). */
 private fun voiceLabel(raw: String): String {
+    if (raw.startsWith("bn_")) {
+        return when (raw) {
+            "bn_female_shreya" -> "শ্রেয়া (নারী)"
+            "bn_male_tanvir" -> "তানভীর (পুরুষ)"
+            "bn_female_priya" -> "প্রিয়া (নারী)"
+            "bn_male_rahim" -> "রহিম (পুরুষ)"
+            else -> raw.substringAfter("bn_").replaceFirstChar { it.uppercase() }
+        }
+    }
     val parts = raw.split('_')
     val name = parts.last().replaceFirstChar { it.uppercase() }
     val accent = when (parts.firstOrNull()?.firstOrNull()) {

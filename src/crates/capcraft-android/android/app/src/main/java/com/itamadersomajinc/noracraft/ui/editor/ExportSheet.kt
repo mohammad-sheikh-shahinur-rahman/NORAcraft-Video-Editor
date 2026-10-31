@@ -62,9 +62,13 @@ fun exportResolutionOf(vm: EditorViewModel): Int {
     return vm.exportResolution ?: RESOLUTIONS.lastOrNull { it <= max(short, 480) } ?: 1080
 }
 
-/** The bitrate an export uses, kilobits a second: the one chosen, or the one suggested for its size. */
-fun exportKbps(vm: EditorViewModel, width: Int, height: Int): Int =
-    vm.exportMbps?.let { it * 1000 } ?: suggestedBitrateKbps(width.toUInt(), height.toUInt(), vm.exportFps.toUInt()).toInt()
+/** The bitrate an export uses, kilobits a second: the one chosen, or the one suggested for its size -
+ *  at a 60% HEVC factor when the file goes out H.265, which reads the same at a lower rate. */
+fun exportKbps(vm: EditorViewModel, width: Int, height: Int, hevc: Boolean = false): Int =
+    vm.exportMbps?.let { it * 1000 }
+        ?: suggestedBitrateKbps(width.toUInt(), height.toUInt(), vm.exportFps.toUInt()).toInt().let {
+            if (hevc) (it * 0.6).roundToInt() else it
+        }
 
 /**
  * The export settings, dropped down from the top over the dimmed editor: Video or GIF, then the
@@ -130,9 +134,12 @@ fun ExportSheet(vm: EditorViewModel, onExport: () -> Unit) {
                 )
                 return@Column
             }
+            val caps = remember { com.itamadersomajinc.noracraft.engine.EncoderCapabilities.checkCapabilities() }
             val res = exportResolutionOf(vm)
             val r = RESOLUTIONS.indexOf(res).coerceAtLeast(0)
-            SettingSlider("Resolution", RESOLUTION_HINTS[r], RESOLUTION_LABELS, r.toFloat()) {
+            val plan = caps.planFor(res, vm.exportFps)
+            val hint = RESOLUTION_HINTS[r]
+            SettingSlider("Resolution", hint, RESOLUTION_LABELS, r.toFloat()) {
                 vm.exportResolution = RESOLUTIONS[it.roundToInt().coerceIn(0, RESOLUTIONS.size - 1)]
             }
             if (vm.exportPhoto) {
@@ -148,7 +155,24 @@ fun ExportSheet(vm: EditorViewModel, onExport: () -> Unit) {
             SettingSlider("Frame rate", if (vm.exportFps >= 50) "Very smooth motion" else "Steady, everyday motion", FRAME_RATES.map { "$it" }, f.toFloat()) {
                 vm.exportFps = FRAME_RATES[it.roundToInt().coerceIn(0, FRAME_RATES.size - 1)]
             }
-            val dims = exportSize(t.width, t.height, res.toUInt())
+            val maxDim = caps.maxSupportedDimension
+            val maxTier = caps.maxTier.takeIf { it > 0 } ?: 1440
+            var safeRes = res.coerceAtMost(maxTier)
+            val tw = t.width.toInt().coerceAtLeast(1)
+            val th = t.height.toInt().coerceAtLeast(1)
+            val shortSide = minOf(tw, th).coerceAtLeast(1)
+            val longSide = maxOf(tw, th)
+            if ((longSide.toDouble() * safeRes / shortSide).toInt() > maxDim) {
+                safeRes = ((maxDim.toDouble() * shortSide / longSide).toInt() / 2 * 2).coerceAtLeast(256)
+            }
+            val dims = exportSize(t.width, t.height, safeRes.toUInt())
+            val hevc = plan?.mime == "video/hevc" || res >= 1440
+            val codecLabel = if (hevc) "H.265" else "H.264"
+            Text(
+                "Encodes ${dims[0]}×${dims[1]} · $codecLabel · ${vm.exportFps} fps",
+                style = Type.Small.copy(fontSize = 13.sp, color = Palette.TextSecondary),
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp),
+            )
             val suggested = (suggestedBitrateKbps(dims[0], dims[1], vm.exportFps.toUInt()).toInt() / 1000.0).roundToInt().coerceAtLeast(1)
             val mbps = vm.exportMbps ?: suggested
             SettingSlider("Bitrate (Mbps)", "Suggested for this video: $suggested", MBPS.map { "$it" }, mbpsToPosition(mbps), continuous = true) {
@@ -157,7 +181,7 @@ fun ExportSheet(vm: EditorViewModel, onExport: () -> Unit) {
                 vm.exportMbps = if (abs(chosen - suggested) <= max(1, suggested / 10)) null else chosen
             }
             Divider()
-            val kbps = exportKbps(vm, dims[0].toInt(), dims[1].toInt())
+            val kbps = exportKbps(vm, dims[0].toInt(), dims[1].toInt(), hevc)
             val mb = (kbps + 128) / 8.0 / 1000.0 * (t.durationUs / 1e6)
             Text(
                 "Estimated file size: %s MB".format(if (mb < 10) "%.1f".format(mb) else "${mb.roundToInt()}"),
@@ -205,8 +229,15 @@ private fun positionToMbps(position: Float): Int {
 private fun SettingSlider(title: String, hint: String, labels: List<String>, position: Float, continuous: Boolean = false, onChange: (Float) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Type.Body.copy(fontSize = 16.sp, color = Palette.DockText), modifier = Modifier.weight(1f))
-            Text(hint, style = Type.Small.copy(fontSize = 13.sp))
+            Text(title, style = Type.Body.copy(fontSize = 16.sp, color = Palette.DockText))
+            Spacer(Modifier.width(12.dp))
+            Text(
+                hint,
+                style = Type.Small.copy(fontSize = 13.sp),
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
         }
         Spacer(Modifier.height(12.dp))
         val last = (labels.size - 1).toFloat()

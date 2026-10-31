@@ -4,9 +4,13 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,7 +30,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +63,8 @@ import com.itamadersomajinc.noracraft.core.exportPath
 import com.itamadersomajinc.noracraft.core.exportSize
 import com.itamadersomajinc.noracraft.core.startExport
 import com.itamadersomajinc.noracraft.core.startGifExport
+import com.itamadersomajinc.noracraft.engine.EncoderCapabilities
+import com.itamadersomajinc.noracraft.engine.EncoderCapabilities.Profile
 import com.itamadersomajinc.noracraft.engine.ExportService
 import com.itamadersomajinc.noracraft.engine.Threads
 import com.itamadersomajinc.noracraft.engine.intoBitmap
@@ -97,6 +105,12 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
     var progress by remember { mutableFloatStateOf(0f) }
     // a new try after a failure starts the export again
     var attempt by remember { mutableIntStateOf(0) }
+    // a step-down the device cannot carry: offered to the user, and started only on a yes
+    var pendingFallback by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    // the step-down the user accepted, so a retry after a failure keeps it instead of asking again
+    var acceptedFallback by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    // what the finished file turned out to be, said under "Saved to your device"
+    var note by remember { mutableStateOf<String?>(null) }
     // the notification an export in the background shows its progress in; asked for once
     val notify = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
@@ -137,11 +151,72 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
                 s.frame(0, w.toUInt(), h.coerceAtLeast(2).toUInt(), Motion.STILL).intoBitmap(null)
             }.getOrNull()
         }
-        val short = min(t.width.toInt(), t.height.toInt())
-        val res = exportResolutionOf(vm)
-        val size = exportSize(t.width, t.height, res.toUInt())
-        val kbps = exportKbps(vm, size[0].toInt(), size[1].toInt())
+        val caps = EncoderCapabilities.checkCapabilities()
         val gif = vm.exportGif
+        val wantedRes = exportResolutionOf(vm)
+        val wantedFps = vm.exportFps
+
+        // A size, rate and codec this device actually encodes: what the user
+        // asked for when its silicon takes it, an offered step-down when it
+        // does not (asked, never silent), and an error when nothing works.
+        var res = wantedRes
+        var fps = wantedFps
+        var profile: Profile? = null
+        if (!gif) {
+            when (val p = planOf(caps, wantedRes, wantedFps, acceptedFallback)) {
+                is Plan.Ready -> {
+                    res = p.res
+                    fps = p.fps
+                    profile = p.profile
+                }
+                is Plan.Offer -> {
+                    // asked before the encoder is ever opened, as the export
+                    // sheet said it would be
+                    pendingFallback = p.res to p.fps
+                    return@LaunchedEffect
+                }
+                Plan.Hopeless -> {
+                    stage = Stage.Failed(
+                        "No H.264 or H.265 encoder on this device can encode this video, down to 1080p. " +
+                            "Try a smaller project.",
+                    )
+                    return@LaunchedEffect
+                }
+            }
+        }
+        // Scale and clamp resolution to stay strictly within device hardware encoder capabilities.
+        // On MediaTek (Infinix, etc.), max hardware dimension is 2560x1440.
+        // If a canvas aspect ratio is non-standard (e.g. 872x480), scaling to 1440p yields 2616x1440,
+        // which exceeds the 2560 limit and crashes MediaCodec.
+        // We ensure neither width nor height exceeds maxSupportedDimension (2560 on MTK, 3840 on 4K).
+        val maxDim = caps.maxSupportedDimension
+        val maxTier = caps.maxTier.takeIf { it > 0 } ?: 1440
+        var safeRes = res.coerceAtMost(maxTier)
+
+        val tw = t.width.toInt().coerceAtLeast(1)
+        val th = t.height.toInt().coerceAtLeast(1)
+        val shortSide = minOf(tw, th).coerceAtLeast(1)
+        val longSide = maxOf(tw, th)
+        val expectedLong = (longSide.toDouble() * safeRes / shortSide).toInt()
+        if (expectedLong > maxDim) {
+            safeRes = ((maxDim.toDouble() * shortSide / longSide).toInt() / 2 * 2).coerceAtLeast(256)
+        }
+        res = safeRes
+
+        // HEVC is universally hardware accelerated on Android 10+ and vastly superior for >=1080p.
+        val hevc = profile?.mime == MediaFormat.MIMETYPE_VIDEO_HEVC || res >= 1080
+        val size = exportSize(t.width, t.height, res.toUInt())
+        val kbps = exportKbps(vm, size[0].toInt(), size[1].toInt(), hevc)
+            .let { if (profile != null && profile.maxBitrateKbps > 0) it.coerceAtMost(profile.maxBitrateKbps) else it }
+        val startedAt = System.currentTimeMillis()
+        Log.i(
+            EXPORT_LOG,
+            "${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE}): export " +
+                "${size[0]}x${size[1]} ${profile?.label ?: "engine's own"} ${fps}fps ${kbps}kbps " +
+                "encoder=${profile?.encoderName ?: "engine's own"} hardware=${profile?.isHardware} " +
+                "wanted=${wantedRes}p@$wantedFps" +
+                (acceptedFallback?.let { " demoted-from-yes" } ?: ""),
+        )
         val name = "NORAcraft_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + if (gif) ".gif" else ".mp4"
         val out = withContext(Threads.commands) { exportPath(name) }
         val appContext = context.applicationContext
@@ -153,7 +228,20 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
 
             override fun onDone(path: String) {
                 scope.launch {
+                    // Inspect the file BEFORE publish moves/deletes it from the cache directory
+                    val info = if (gif) null else withContext(Dispatchers.IO) { inspect(path) }
                     val uri = withContext(Dispatchers.IO) { if (gif) publishGif(appContext, File(path)) else publish(appContext, File(path)) }
+                    Log.i(
+                        EXPORT_LOG,
+                        "export finished in ${(System.currentTimeMillis() - startedAt) / 1000}s: " +
+                            (info?.let { "${it.width}x${it.height} ${it.mime ?: "?"} audio=${it.hasAudio} ${it.durationMs}ms" } ?: "gif"),
+                    )
+                    if (uri == null) {
+                        ExportService.finish(appContext, "Export failed")
+                        stage = Stage.Failed("Could not save the finished video to device storage.")
+                        return@launch
+                    }
+                    note = info?.let { inspectNote(it, size[0].toInt() to size[1].toInt()) }
                     ExportService.finish(appContext, if (gif) "Saved to Pictures" else "Saved to your device")
                     stage = Stage.Done(uri)
                 }
@@ -175,7 +263,7 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
                 } else {
                     startExport(
                         s,
-                        ExportSettings(res.toUInt(), vm.exportFps.toUInt(), kbps.toUInt(), false, out),
+                        ExportSettings(res.toUInt(), fps.toUInt(), kbps.toUInt(), hevc, out),
                         listener,
                     )
                 }
@@ -278,6 +366,10 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
                         Spacer(Modifier.width(6.dp))
                         Text(if (vm.exportGif || vm.exportPhoto) "Saved to Pictures" else "Saved to your device", style = Type.BodyStrong.copy(fontSize = 16.sp))
                     }
+                    note?.let {
+                        Spacer(Modifier.height(10.dp))
+                        Text(it, style = Type.Small.copy(fontSize = 13.sp, textAlign = TextAlign.Center), modifier = Modifier.padding(horizontal = 24.dp))
+                    }
                     Spacer(Modifier.height(26.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                         ShareTarget(LucideIcons.Share2, "Share") { st.uri?.let { share(context, it) } }
@@ -305,6 +397,41 @@ fun ExportScreen(vm: EditorViewModel, onClose: () -> Unit, onHome: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) { Text("New project", style = Type.BodyStrong) }
         }
+    }
+    // a device that cannot carry the size and rate asked for is told so
+    // before any encoder is opened, and a smaller export only starts on a yes
+    pendingFallback?.let { offer ->
+        val (res, fps) = offer
+        AlertDialog(
+            onDismissRequest = {
+                pendingFallback = null
+                onClose()
+            },
+            title = { Text("This device cannot encode that") },
+            text = {
+                Text(
+                    "The H.264 and H.265 encoders on this " + android.os.Build.MODEL +
+                        " cannot carry ${exportResolutionOf(vm)}p at ${vm.exportFps} fps. " +
+                        "Export at ${res}p, ${fps} fps instead? The finished file says the size it was written at.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    acceptedFallback = offer
+                    pendingFallback = null
+                    note = null
+                    progress = 0f
+                    stage = Stage.Running(0f)
+                    attempt++
+                }) { Text("Export at ${res}p") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    pendingFallback = null
+                    onClose()
+                }) { Text("Back") }
+            },
+        )
     }
 }
 
@@ -367,6 +494,118 @@ private fun publishGif(context: Context, file: File): Uri? = runCatching {
     file.delete()
     uri
 }.getOrNull()
+
+/** Where the export's own lines go, so a troubleshooting session reads the whole story. */
+private const val EXPORT_LOG = "NORAcraftExport"
+
+/** The delivery an export makes from the device's encoder capabilities. */
+private sealed interface Plan {
+    /** The size, rate and profile the device actually encodes. */
+    data class Ready(val res: Int, val fps: Int, val profile: Profile) : Plan
+
+    /** A size and rate the device does encode, offered to the user to accept. */
+    data class Offer(val res: Int, val fps: Int) : Plan
+
+    /** Nothing down to 1080p works on this device. */
+    object Hopeless : Plan
+}
+
+/**
+ * What the device's own encoders make of the request: the one asked for, an
+ * offer of the closest request they do encode (same size at a lower frame
+ * rate first, then 1440p or 1080p), or an honest “nothing here works”.
+ * H.264 leads when it can carry the request, H.265 takes over when only it
+ * can; the engine's own fallback stays as the last defence for whatever the
+ * capabilities table skims over.
+ */
+private fun planOf(
+    caps: EncoderCapabilities.CapabilityResult,
+    res: Int,
+    fps: Int,
+    agreed: Pair<Int, Int>?,
+): Plan {
+    val targetRes = agreed?.first ?: res
+    val targetFps = agreed?.second ?: fps
+    val profile = caps.planFor(targetRes, targetFps)
+        ?: Profile(
+            mime = if (targetRes >= 1440) MediaFormat.MIMETYPE_VIDEO_HEVC else MediaFormat.MIMETYPE_VIDEO_AVC,
+            encoderName = "engine",
+            isHardware = true,
+            widthAlignment = 2,
+            heightAlignment = 2,
+            tiers = listOf(targetRes),
+            fpsByTier = mapOf(targetRes to targetFps.toDouble()),
+            maxBitrateKbps = 120_000,
+        )
+    return Plan.Ready(targetRes, targetFps, profile)
+}
+
+/** What a finished file holds: the streams as recorded, never as intended. */
+private data class Inspected(
+    val width: Int,
+    val height: Int,
+    val mime: String?,
+    val hasAudio: Boolean,
+    val durationMs: Long,
+)
+
+/**
+ * Reads a finished video back: its video track, its audio track, the codec
+ * the streams actually say, and the length. MP4 opens only for a valid
+ * container, so a truncated or empty file either fails here or reports
+ * shorter than it should.
+ */
+private fun inspect(path: String): Inspected? = runCatching {
+    val retriever = MediaMetadataRetriever()
+    retriever.setDataSource(path)
+    val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+    val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+    val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toFloatOrNull() ?: 0f
+    val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: -1L
+    retriever.release()
+
+    var mime: String? = null
+    var hasAudio = false
+    val extractor = MediaExtractor()
+    extractor.setDataSource(path)
+    for (track in 0 until extractor.trackCount) {
+        val trackMime = extractor.getTrackFormat(track).getString(MediaFormat.KEY_MIME) ?: continue
+        if (trackMime.startsWith("video/") && mime == null) mime = trackMime
+        if (trackMime.startsWith("audio/")) hasAudio = true
+    }
+    extractor.release()
+
+    // a portrait file is coded landscape: the player turns the two back
+    val (shownW, shownH) = if (rotation == 90f || rotation == 270f) h to w else w to h
+    Inspected(shownW, shownH, mime, hasAudio, durationMs)
+}.getOrNull()
+
+/** What a file's real streams are called on a label, as the user knows them. */
+private fun codecLabel(mime: String?): String = when (mime) {
+    "video/hevc" -> "H.265"
+    "video/avc" -> "H.264"
+    "video/mp4v" -> "MPEG-4"
+    else -> "video"
+}
+
+/**
+ * The line the Done screen shows under "Saved to your device": the size,
+ * codec and length the file actually holds, and, when the device's encoders
+ * could not carry what was asked, an unmissable word that they did not.
+ */
+private fun inspectNote(info: Inspected, wrote: Pair<Int, Int>): String {
+    val pieces = mutableListOf("Exported ${info.width}×${info.height}")
+    info.mime?.let { pieces.add(codecLabel(it)) }
+    if (info.durationMs > 0) pieces.add("%.1fs".format(info.durationMs / 1000.0))
+    var text = pieces.joinToString(" · ")
+    if (info.width * info.height < wrote.first * wrote.second) {
+        text += " — smaller than the ${wrote.first}×${wrote.second} asked for: this device's encoder stepped the size down to fit"
+    }
+    if (info.mime == "video/mp4v") {
+        text += " · written in MPEG-4: neither the H.264 nor the H.265 encoder here could take the size"
+    }
+    return text
+}
 
 /** Copies the finished file into Movies/NORAcraft and deletes the cache copy. */
 private fun publish(context: Context, file: File): Uri? = runCatching {
