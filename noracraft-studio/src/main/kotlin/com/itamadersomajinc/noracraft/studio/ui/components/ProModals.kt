@@ -106,7 +106,7 @@ fun ScreenRecorderModal(
                         Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(if (isRecording) Color.Red else StudioColors.Primary))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isRecording) "রেকর্ডিং চলছে (${"%02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60)})" else "বিল্ট-ইন স্ক্রিন ও ওয়েবক্যাম রেকর্ডার",
+                            text = if (isRecording) "Recording Active (${"%02d:%02d".format(secondsElapsed / 60, secondsElapsed % 60)})" else "Screen & Webcam Studio Recorder",
                             color = StudioColors.TextPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
@@ -132,7 +132,7 @@ fun ScreenRecorderModal(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (isRecording) "🔴 LIVE SCREEN RECORDING (60 FPS D3D11)" else "ফুল স্ক্রিন + ওয়েবক্যাম ওভারলে প্রিভিউ",
+                        text = if (isRecording) "🔴 LIVE SCREEN CAPTURE (60 FPS D3D11)" else "Full Desktop Display + Webcam PIP Preview",
                         color = if (isRecording) Color.Red else StudioColors.TextMuted,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
@@ -156,11 +156,11 @@ fun ScreenRecorderModal(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Toggle Toggles
+                // Toggle Options
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    RecorderToggle("স্ক্রিন রেকর্ড", recordScreen) { recordScreen = it }
-                    RecorderToggle("ওয়েবক্যাম (PIP)", recordWebcam) { recordWebcam = it }
-                    RecorderToggle("ইউএসবি মাইক", recordMic) { recordMic = it }
+                    RecorderToggle("Record Display", recordScreen) { recordScreen = it }
+                    RecorderToggle("Webcam PIP", recordWebcam) { recordWebcam = it }
+                    RecorderToggle("USB Microphone", recordMic) { recordMic = it }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -169,7 +169,7 @@ fun ScreenRecorderModal(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     if (!isRecording) {
                         OutlinedButton(onClick = onDismiss, modifier = Modifier.height(36.dp)) {
-                            Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                            Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Button(
@@ -183,14 +183,13 @@ fun ScreenRecorderModal(
                         ) {
                             Icon(Icons.Default.Videocam, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("রেকর্ড শুরু করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Start Recording", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     } else {
                         Button(
                             onClick = {
                                 isRecording = false
                                 onDismiss()
-                                // Add simulated screen recording to media bin & timeline
                                 val recAsset = MediaAsset(
                                     name = "Screen_Recording_%02d.mp4".format(System.currentTimeMillis() % 100),
                                     path = "C:/Videos/Screen_Record.mp4",
@@ -205,7 +204,7 @@ fun ScreenRecorderModal(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.height(36.dp)
                         ) {
-                            Text("রেকর্ড থামান ও টাইমলাইনে যোগ করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Stop & Insert to Timeline", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -258,7 +257,7 @@ fun AiSilenceRemoverModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.ContentCut, contentDescription = null, tint = StudioColors.Primary, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("স্মার্ট এআই সাইলেন্স রিমুভার (Auto Jump-Cut)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Smart AI Silence Remover (Auto Jump-Cut)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = StudioColors.TextSecondary)
@@ -268,7 +267,7 @@ fun AiSilenceRemoverModal(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    "ভিডিও ও অডিও ট্র্যাকে কথা বলার মাঝের দীর্ঘ নিরবতা (Dead Pauses) এআই স্বয়ংক্রিয়ভাবে খুঁজে এক ক্লিকে কেটে বাদ দেবে।",
+                    "Automatically detects dead pauses and silence in video and audio clips and compacts them with seamless jump-cuts, saving hours of manual editing.",
                     color = StudioColors.TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp
@@ -305,7 +304,7 @@ fun AiSilenceRemoverModal(
 
                 // Threshold Slider
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("ভলিউম থ্রেশহোল্ড (Volume Cutoff)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                    Text("Silence Cutoff Threshold", color = StudioColors.TextSecondary, fontSize = 11.sp)
                     Text("${thresholdDb.toInt()} dB", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Slider(
@@ -319,7 +318,7 @@ fun AiSilenceRemoverModal(
 
                 // Min Silence Duration
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("ন্যূনতম পজ ডুরেশন (Min Pause)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                    Text("Minimum Pause Duration", color = StudioColors.TextSecondary, fontSize = 11.sp)
                     Text("${minDurationMs.toInt()} ms", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Slider(
@@ -333,7 +332,7 @@ fun AiSilenceRemoverModal(
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.height(36.dp)) {
-                        Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                        Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Button(
@@ -350,7 +349,7 @@ fun AiSilenceRemoverModal(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text(if (isProcessing) "কাটিং প্রসেস চলছে..." else "সব সাইলেন্ট গ্যাপ রিমুভ করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isProcessing) "Compacting Dead Pauses..." else "Apply Jump-Cut Compaction", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -366,18 +365,17 @@ fun BanglaTtsStudioModal(
     state: StudioProjectState,
     onDismiss: () -> Unit
 ) {
-    var textInput by remember { mutableStateOf("আজকের বিশেষ সংবাদে আপনাদের সবাইকে স্বাগত জানাচ্ছি।") }
-    var selectedVoice by remember { mutableStateOf("রহিম (স্বাভাবিক বাংলা পুরুষ)") }
+    var textInput by remember { mutableStateOf("Welcome to NoraCraft Studio, the ultimate creative suite for creators.") }
+    var selectedVoice by remember { mutableStateOf("Rahim (Natural Baritone)") }
     var voiceSpeed by remember { mutableFloatStateOf(1.0f) }
-    var voicePitch by remember { mutableFloatStateOf(0f) }
     var isSynthesizing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val voices = listOf(
-        "রহিম (স্বাভাবিক বাংলা পুরুষ)",
-        "ফাতেমা (নিউজ প্রেজেন্টার নারী)",
-        "তানভীর (পডকাস্ট ও এনার্জেটিক)",
-        "নুসরাত (আর্ট ও গল্প কথন)"
+        "Rahim (Natural Baritone)",
+        "Fatema (Warm & Natural Host)",
+        "Tanvir (Dynamic Tech & Podcast)",
+        "Nusrat (Formal Broadcast Anchor)"
     )
 
     Dialog(onDismissRequest = onDismiss) {
@@ -398,7 +396,7 @@ fun BanglaTtsStudioModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.RecordVoiceOver, contentDescription = null, tint = StudioColors.Primary, modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("বাংলা এআই টেক্সট-টু-স্পিচ স্টুডিও (TTS)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("AI Voiceover Studio (TTS)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = StudioColors.TextSecondary)
@@ -410,9 +408,9 @@ fun BanglaTtsStudioModal(
                 OutlinedTextField(
                     value = textInput,
                     onValueChange = { textInput = it },
-                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                    modifier = Modifier.fillMaxWidth().height(90.dp),
                     shape = RoundedCornerShape(8.dp),
-                    placeholder = { Text("এখানে যেকোনো বাংলা টেক্সট লিখুন...", color = StudioColors.TextMuted, fontSize = 12.sp) },
+                    placeholder = { Text("Type narration script in English or Bengali...", color = StudioColors.TextMuted, fontSize = 12.sp) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = StudioColors.Background,
                         unfocusedContainerColor = StudioColors.Background,
@@ -425,7 +423,7 @@ fun BanglaTtsStudioModal(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text("ভয়েস ক্যারেক্টার সিলেক্ট করুন", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                Text("Select Neural Voice Artist", color = StudioColors.TextSecondary, fontSize = 11.sp)
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -447,11 +445,11 @@ fun BanglaTtsStudioModal(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Pitch & Speed
+                // Speed
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("ভয়েস স্পিড: ${"%.1f".format(voiceSpeed)}x", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                    Text("Speech Rate: ${"%.1f".format(voiceSpeed)}x", color = StudioColors.TextSecondary, fontSize = 11.sp)
                 }
                 Slider(
                     value = voiceSpeed,
@@ -464,7 +462,7 @@ fun BanglaTtsStudioModal(
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.height(36.dp)) {
-                        Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                        Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Button(
@@ -476,10 +474,10 @@ fun BanglaTtsStudioModal(
                                 val voiceTrack = state.tracks.find { it.id == "tr_aud_2" } ?: state.tracks.find { it.kind == TrackKind.AUDIO }!!
                                 voiceTrack.clips.add(
                                     StudioClip(
-                                        title = "ভয়েস: ${textInput.take(16)}...",
-                                        mediaPath = "C:/Audio/TTS_Bangla.wav",
+                                        title = "Voice: ${textInput.take(16)}...",
+                                        mediaPath = "C:/Audio/TTS_Audio.wav",
                                         startMs = state.currentTimeMs,
-                                        durationMs = (textInput.length * 150L).coerceAtLeast(3000L),
+                                        durationMs = (textInput.length * 120L).coerceAtLeast(3000L),
                                         trackKind = TrackKind.AUDIO,
                                         volume = 1.0f
                                     )
@@ -492,7 +490,7 @@ fun BanglaTtsStudioModal(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text(if (isSynthesizing) "ভয়েস তৈরি হচ্ছে..." else "ভয়েস ট্র্যাক এ যুক্ত করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isSynthesizing) "Synthesizing Audio..." else "Insert into Voice Track", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -530,7 +528,7 @@ fun MusicBeatDetectorModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.MusicNote, contentDescription = null, tint = StudioColors.Secondary, modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("মিউজিক বিট ডিটেকশন ও অটো-সিঙ্ক", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Music Beat Detector & Rhythm Sync", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = StudioColors.TextSecondary)
@@ -539,7 +537,7 @@ fun MusicBeatDetectorModal(
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    "ব্যাকগ্রাউন্ড মিউজিকের ড্রামস ও রিদম বিট স্বয়ংক্রিয়ভাবে ডিটেক্ট করে টাইমলাইনে বিট মার্কার তৈরি করবে, যেন মিউজিকের তালে তালে ভিডিওর ক্লিপ নিজে থেকেই স্ন্যাপ হয়।",
+                    "Scans drum transients and acoustic tempo from background music and generates timeline beat markers for automatic video transition snapping.",
                     color = StudioColors.TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp
@@ -556,7 +554,7 @@ fun MusicBeatDetectorModal(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("ডিটেক্টেড টেম্পো (Tempo)", color = StudioColors.TextMuted, fontSize = 11.sp)
+                        Text("Detected Audio Tempo", color = StudioColors.TextMuted, fontSize = 11.sp)
                         Text("$detectedBpm BPM", color = StudioColors.Secondary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Text("4/4 Dance Rhythm Match", color = StudioColors.Success, fontSize = 10.sp)
                     }
@@ -566,7 +564,7 @@ fun MusicBeatDetectorModal(
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.height(36.dp)) {
-                        Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                        Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Button(
@@ -583,7 +581,7 @@ fun MusicBeatDetectorModal(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text(if (isDetecting) "অ্যানালাইসিস হচ্ছে..." else "টাইমলাইনে বিট মার্কার ফেলুন", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isDetecting) "Analyzing Tempo..." else "Generate Beat Markers", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -600,7 +598,6 @@ fun AutoReframeModal(
     onDismiss: () -> Unit
 ) {
     var targetRatio by remember { mutableStateOf(CanvasAspectRatio.PORTRAIT_9_16) }
-    var trackingMode by remember { mutableStateOf("Human Face & Action") }
     var motionSmoothness by remember { mutableFloatStateOf(0.75f) }
     var isProcessing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -623,7 +620,7 @@ fun AutoReframeModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.SmartDisplay, contentDescription = null, tint = StudioColors.Primary, modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("স্মার্ট অটো-রিফ্রেম (AI Auto-Reframe)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Smart AI Auto-Reframe", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                     if (!isProcessing) {
                         IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
@@ -634,7 +631,7 @@ fun AutoReframeModal(
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    "ল্যান্ডস্কেপ (16:9) ভিডিও থেকে মূল বিষয়বস্তু বা বক্তার চেহারা ট্র্যাক করে স্বয়ংক্রিয়ভাবে টিকটক, ইউটিউব শর্টস বা রিলসের জন্য ৯:১৬ অনুপাতে ক্রপ ও প্যান ফ্রেম করবে।",
+                    "Tracks the primary subject and key action from landscape (16:9) video and intelligently pans and crops for vertical 9:16 Shorts, Reels, and TikTok.",
                     color = StudioColors.TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 16.sp
@@ -661,7 +658,7 @@ fun AutoReframeModal(
                             .background(Color(0xFF151821)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("16:9 সোর্স ফ্রেম", color = StudioColors.TextMuted, fontSize = 10.sp)
+                        Text("16:9 Source Frame", color = StudioColors.TextMuted, fontSize = 10.sp)
 
                         // 9:16 Vertical crop guide (dynamic pan)
                         Box(
@@ -673,7 +670,7 @@ fun AutoReframeModal(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("AI ট্র্যাক", color = StudioColors.Secondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text("AI Track", color = StudioColors.Secondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 Text("9:16", color = Color.White, fontSize = 8.sp)
                             }
                         }
@@ -683,7 +680,7 @@ fun AutoReframeModal(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // Target Format Selector
-                Text("টার্গেট ফরম্যাট", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text("Target Video Format", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     val formats = listOf(
@@ -712,7 +709,7 @@ fun AutoReframeModal(
 
                 // Motion Smoothness
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("ট্র্যাকিং স্মুথনেস (Motion Smoothing)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                    Text("Motion Tracking Smoothing", color = StudioColors.TextSecondary, fontSize = 11.sp)
                     Text("${(motionSmoothness * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Slider(
@@ -727,7 +724,7 @@ fun AutoReframeModal(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     if (!isProcessing) {
                         OutlinedButton(onClick = onDismiss, modifier = Modifier.height(36.dp)) {
-                            Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                            Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                     }
@@ -746,7 +743,7 @@ fun AutoReframeModal(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(36.dp)
                     ) {
-                        Text(if (isProcessing) "স্মার্ট রিফ্রেম প্রয়োগ হচ্ছে..." else "স্মার্ট রিফ্রেম প্রয়োগ করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isProcessing) "Applying Auto-Reframe..." else "Apply Auto-Reframe", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

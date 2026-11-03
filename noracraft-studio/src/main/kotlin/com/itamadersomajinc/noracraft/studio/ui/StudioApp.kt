@@ -218,7 +218,7 @@ private fun StudioExportDialog(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.FileDownload, contentDescription = null, tint = StudioColors.Primary, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text("আল্ট্রা হাই-স্পিড জিপিইউ এক্সপোর্ট (Hardware Accelerated)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("Hardware-Accelerated Studio Export (4K / 8K / 120 FPS)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                     if (!isExporting) {
                         IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
@@ -242,7 +242,7 @@ private fun StudioExportDialog(
                         Icon(Icons.Default.Speed, contentDescription = null, tint = StudioColors.Primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "⚡ NVIDIA NVENC Gen 8 & AMD AMF হার্ডওয়্যার এনকোডার সক্রিয় — 10x বিদ্যুৎ গতিতে রেন্ডার হবে!",
+                            "⚡ NVIDIA NVENC Gen 8 & AMD AMF Acceleration Active — Up to 10x Real-time Encoding",
                             color = StudioColors.Primary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
@@ -253,7 +253,7 @@ private fun StudioExportDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Hardware Encoder Selector
-                Text("জিপিইউ হার্ডওয়্যার এনকোডার", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text("GPU Hardware Encoder", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val gpus = listOf("NVIDIA NVENC (GeForce RTX)", "AMD AMF (Radeon RX)", "Intel QuickSync", "CPU Multi-Core")
@@ -282,7 +282,7 @@ private fun StudioExportDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Resolution Selector
-                Text("এক্সপোর্ট রেজোলিউশন", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text("Export Resolution", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val resList = listOf("1080p FHD", "4K UHD (3840×2160)", "8K FUHD (7680×4320)")
@@ -311,7 +311,7 @@ private fun StudioExportDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Frame Rate Selector
-                Text("ফ্রেমরেট (FPS)", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text("Framerate (FPS)", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val fpsOptions = listOf(30 to "30 FPS (Standard)", 60 to "60 FPS (Ultra Smooth)", 120 to "120 FPS (Cinema HFR)")
@@ -348,10 +348,10 @@ private fun StudioExportDialog(
                         .padding(12.dp)
                 ) {
                     Column {
-                        ExportOptionRow(label = "এনকোডার পাইপলাইন", value = "$selectedGpuEncoder (Dual AV1 / HEVC 10-Bit)")
-                        ExportOptionRow(label = "কালার স্পেস", value = "Rec.709 10-Bit HDR / Main 10 Profile")
-                        ExportOptionRow(label = "বিটরেট মাস্টার", value = selectedBitrate)
-                        ExportOptionRow(label = "অডিও কোডেক", value = "AAC-LC 320 kbps (48 kHz Stereo)")
+                        ExportOptionRow(label = "Encoder Pipeline", value = "$selectedGpuEncoder (Dual AV1 / HEVC 10-Bit)")
+                        ExportOptionRow(label = "Color Space", value = "Rec.709 10-Bit HDR / Main 10 Profile")
+                        ExportOptionRow(label = "Target Bitrate", value = selectedBitrate)
+                        ExportOptionRow(label = "Audio Codec", value = "AAC-LC 320 kbps (48 kHz Stereo)")
                     }
                 }
 
@@ -361,7 +361,7 @@ private fun StudioExportDialog(
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
-                                if (exportDone) "রেন্ডারিং সম্পন্ন! 4K/8K ফাইল সংরক্ষিত।" else "ফ্রেম রেন্ডারিং: $currentRenderFrame / $totalFrames (GPU এনকোডিং 240 FPS)",
+                                if (exportDone) "Rendering Complete! Master file saved successfully." else "Rendering: $currentRenderFrame / $totalFrames frames (GPU Encoding ~240 FPS)",
                                 color = if (exportDone) StudioColors.Success else StudioColors.TextPrimary,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -381,7 +381,7 @@ private fun StudioExportDialog(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = StudioColors.Success, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("ফাইল সেভ হয়েছে: C:/Videos/NoraCraft_Master_4K.mp4", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                                Text("Saved to: C:/Videos/NoraCraft_Master_4K.mp4", color = StudioColors.TextSecondary, fontSize = 11.sp)
                             }
                         }
                     }
@@ -397,7 +397,7 @@ private fun StudioExportDialog(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.height(36.dp)
                         ) {
-                            Text("বাতিল", color = StudioColors.TextSecondary, fontSize = 12.sp)
+                            Text("Cancel", color = StudioColors.TextSecondary, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Button(
@@ -418,7 +418,7 @@ private fun StudioExportDialog(
                         ) {
                             Icon(Icons.Default.Speed, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("জিপিইউ এক্সপোর্ট শুরু করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Start GPU Export", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     } else if (exportDone) {
                         OutlinedButton(
@@ -432,7 +432,7 @@ private fun StudioExportDialog(
                         ) {
                             Icon(Icons.Default.FolderOpen, contentDescription = null, tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("ফোল্ডার ওপেন করুন", color = StudioColors.TextPrimary, fontSize = 12.sp)
+                            Text("Open Output Folder", color = StudioColors.TextPrimary, fontSize = 12.sp)
                         }
 
                         Spacer(modifier = Modifier.width(10.dp))
@@ -443,7 +443,7 @@ private fun StudioExportDialog(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.height(36.dp)
                         ) {
-                            Text("সম্পন্ন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Done", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

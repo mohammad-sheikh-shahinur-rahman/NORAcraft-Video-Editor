@@ -317,27 +317,47 @@ fun VideoCanvasMonitor(
 private fun StudioStereoVuLadder(leftDb: Float, rightDb: Float) {
     Column(
         modifier = Modifier
-            .width(34.dp)
-            .fillMaxHeight(0.88f)
+            .width(42.dp)
+            .fillMaxHeight(0.92f)
             .clip(RoundedCornerShape(6.dp))
             .background(StudioColors.SurfaceCard)
             .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
-            .padding(vertical = 8.dp, horizontal = 4.dp),
+            .padding(vertical = 6.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("VU", color = StudioColors.TextMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
+        Text("PEAK", color = StudioColors.TextMuted, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(3.dp))
 
         Row(
             modifier = Modifier.weight(1f).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            VuChannelBar(db = leftDb)
-            VuChannelBar(db = rightDb)
+            // DB Scale Labels
+            Column(
+                modifier = Modifier.fillMaxHeight().padding(end = 2.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.End
+            ) {
+                Text("0", color = StudioColors.Error, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                Text("-6", color = StudioColors.Warning, fontSize = 7.sp)
+                Text("-18", color = StudioColors.Success, fontSize = 7.sp)
+                Text("-36", color = StudioColors.TextMuted, fontSize = 7.sp)
+                Text("-∞", color = StudioColors.TextMuted, fontSize = 7.sp)
+            }
+
+            // Dual Channel Meters
+            Row(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                VuChannelBar(db = leftDb)
+                VuChannelBar(db = rightDb)
+            }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-        Text("dB", color = StudioColors.TextMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(3.dp))
+        Text("L / R", color = StudioColors.TextMuted, fontSize = 7.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -722,7 +742,7 @@ fun DualMonitorWindowContent(state: StudioProjectState) {
                         .clickable { state.isDualMonitorOpen = false }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
-                    Text("ডুয়াল মনিটর বন্ধ করুন", color = StudioColors.Error, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Close Dual Display", color = StudioColors.Error, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

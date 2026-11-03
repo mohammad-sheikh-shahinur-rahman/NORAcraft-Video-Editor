@@ -36,9 +36,9 @@ enum class BlendModeOption(val label: String) {
 }
 
 enum class ProxyMode(val label: String) {
-    FULL_QUALITY("Full Quality (100%)"),
-    HALF_PROXY("1/2 Proxy (Fast Performance)"),
-    QUARTER_PROXY("1/4 Proxy (Ultra Smooth 60fps)")
+    FULL_QUALITY("Full Res (100%)"),
+    HALF_PROXY("1/2 Proxy (1080p)"),
+    QUARTER_PROXY("1/4 Proxy (540p)")
 }
 
 data class ColorWheelVal(
@@ -216,11 +216,11 @@ class StudioProjectState {
 
     init {
         // Default Tracks
-        tracks.add(StudioTrack(id = "tr_sub", name = "বাংলা সাবটাইটেল (Subtitles)", kind = TrackKind.SUBTITLE))
-        tracks.add(StudioTrack(id = "tr_vid_1", name = "ভিডিও ট্র্যাক ১ (Main Video)", kind = TrackKind.VIDEO))
-        tracks.add(StudioTrack(id = "tr_vid_2", name = "ভিডিও ট্র্যাক ২ (Overlay / PIP)", kind = TrackKind.VIDEO))
-        tracks.add(StudioTrack(id = "tr_aud_1", name = "অডিও ট্র্যাক (BGM & Sound)", kind = TrackKind.AUDIO))
-        tracks.add(StudioTrack(id = "tr_aud_2", name = "ভয়েস ট্র্যাক (Voiceover)", kind = TrackKind.AUDIO))
+        tracks.add(StudioTrack(id = "tr_sub", name = "Subtitles & Text", kind = TrackKind.SUBTITLE))
+        tracks.add(StudioTrack(id = "tr_vid_1", name = "Main Video Track (V1)", kind = TrackKind.VIDEO))
+        tracks.add(StudioTrack(id = "tr_vid_2", name = "Overlay / PIP (V2)", kind = TrackKind.VIDEO))
+        tracks.add(StudioTrack(id = "tr_aud_1", name = "Music Track (A1)", kind = TrackKind.AUDIO))
+        tracks.add(StudioTrack(id = "tr_aud_2", name = "Voiceover / Mic (A2)", kind = TrackKind.AUDIO))
 
         recalculateTotalDuration()
     }
@@ -477,13 +477,13 @@ class StudioProjectState {
             subTrack?.clips?.add(
                 StudioClip(
                     id = "c_sub_1",
-                    title = "স্বাগতম NoraCraft Studio-তে",
+                    title = "Welcome to NoraCraft Studio",
                     mediaPath = "",
                     startMs = 2000L,
                     durationMs = 9000L,
                     trackKind = TrackKind.SUBTITLE,
                     textStyle = BanglaTextStyle(
-                        text = "স্বাগতম NoraCraft Studio-তে — সম্পূর্ণ অফলাইন ও প্রোডাকশন গ্রেড!",
+                        text = "Welcome to NoraCraft Studio — 4K Pro Video Editor",
                         fontName = "Kalpurush",
                         fontSize = 24f,
                         textColor = Color(0xFFFFD700)

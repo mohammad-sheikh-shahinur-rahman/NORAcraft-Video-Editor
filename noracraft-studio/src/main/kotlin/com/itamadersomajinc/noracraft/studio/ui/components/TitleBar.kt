@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,9 +62,9 @@ fun StudioTitleBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .height(48.dp)
             .background(StudioColors.SurfaceDark)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -71,114 +72,122 @@ fun StudioTitleBar(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(StudioColors.Primary),
+                    .size(28.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(StudioColors.Primary, Color(0xFF4F46E5))
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "N",
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontWeight = FontWeight.Black,
+                    fontSize = 15.sp
                 )
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "NoraCraft Studio",
-                color = StudioColors.TextPrimary,
+                text = "NoraCraft",
+                color = StudioColors.TextWhite,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Studio",
+                color = StudioColors.Secondary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
             )
             Spacer(modifier = Modifier.width(6.dp))
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .background(StudioColors.Primary.copy(alpha = 0.2f))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                    .border(0.5.dp, StudioColors.Primary.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 5.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = "PRO 64-BIT",
                     color = StudioColors.Primary,
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             // Project File Name Pill
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
                     .background(StudioColors.SurfaceCard)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = state.projectName,
                     color = StudioColors.TextSecondary,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Quick Save / Open Project
             IconButton(
                 onClick = { saveProjectDialog(state) },
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(26.dp)
             ) {
-                Icon(Icons.Default.Save, contentDescription = "Save Project (Ctrl+S)", tint = StudioColors.TextSecondary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Save, contentDescription = "Save Project (Ctrl+S)", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
             }
             IconButton(
                 onClick = { openProjectDialog(state) },
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(26.dp)
             ) {
-                Icon(Icons.Default.FolderOpen, contentDescription = "Open Project (Ctrl+O)", tint = StudioColors.TextSecondary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.FolderOpen, contentDescription = "Open Project (Ctrl+O)", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
             }
         }
 
-        // Center: Pro Action Toolbar (Recorder, Silence Jump-Cut, Beat Sync, Auto-Reframe, Dual Monitor)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // Center: Pro Tools Toolbar (Clean English with compact sleek buttons)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
             // Screen & Audio Recorder
             TitleBarToolPill(
-                label = "রেকর্ডার",
+                label = "Record",
                 icon = Icons.Default.Videocam,
                 tint = StudioColors.Primary,
                 onClick = { state.screenRecorderModalOpen = true }
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
-
             // AI Silence Remover
             TitleBarToolPill(
-                label = "সাইলেন্স কাট",
+                label = "Silence Cut",
                 icon = Icons.Default.ContentCut,
                 tint = StudioColors.Secondary,
                 onClick = { state.aiSilenceRemoverModalOpen = true }
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
-
             // Beat Detector
             TitleBarToolPill(
-                label = "বিট সিঙ্ক",
+                label = "Beat Sync",
                 icon = Icons.Default.MusicNote,
                 tint = Color(0xFFFF4081),
                 onClick = { state.beatDetectorModalOpen = true }
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
-
             // Smart Auto-Reframe
             TitleBarToolPill(
-                label = "অটো-রিফ্রেম",
+                label = "Reframe",
                 icon = Icons.Default.SmartDisplay,
                 tint = Color(0xFFFFB300),
                 onClick = { state.autoReframeModalOpen = true }
             )
-
-            Spacer(modifier = Modifier.width(6.dp))
 
             // Dual Monitor Toggle
             val dualActive = state.isDualMonitorOpen
@@ -188,18 +197,18 @@ fun StudioTitleBar(
                     .background(if (dualActive) StudioColors.Primary.copy(alpha = 0.25f) else StudioColors.SurfaceCard)
                     .border(1.dp, if (dualActive) StudioColors.Primary else StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
                     .clickable { state.isDualMonitorOpen = !state.isDualMonitorOpen }
-                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                    .padding(horizontal = 7.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.OpenInNew,
-                    contentDescription = "Dual Monitor",
+                    contentDescription = "Dual Display",
                     tint = if (dualActive) StudioColors.Primary else StudioColors.TextSecondary,
-                    modifier = Modifier.size(13.dp)
+                    modifier = Modifier.size(12.dp)
                 )
-                Spacer(modifier = Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    "ডুয়াল মনিটর",
+                    "Dual Display",
                     color = if (dualActive) StudioColors.Primary else StudioColors.TextPrimary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
@@ -207,23 +216,24 @@ fun StudioTitleBar(
             }
         }
 
-        // Right: Aspect Ratio, Proxy Selector & Export Button
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // Right: Undo/Redo, Proxy, Aspect Ratio & Prominent Export Button
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             // Undo / Redo
             IconButton(
                 onClick = { /* Undo */ },
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(26.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
+                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo", tint = StudioColors.TextSecondary, modifier = Modifier.size(14.dp))
             }
             IconButton(
                 onClick = { /* Redo */ },
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(26.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Redo", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
+                Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Redo", tint = StudioColors.TextSecondary, modifier = Modifier.size(14.dp))
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
 
             // Proxy Mode Dropdown Selector
             Box {
@@ -233,7 +243,7 @@ fun StudioTitleBar(
                         .background(StudioColors.SurfaceCard)
                         .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
                         .clickable { proxyDropdownOpen = true }
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                        .padding(horizontal = 7.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val dotColor = when (state.proxyMode) {
@@ -241,15 +251,15 @@ fun StudioTitleBar(
                         ProxyMode.HALF_PROXY -> Color(0xFFFFB300)
                         ProxyMode.QUARTER_PROXY -> StudioColors.Secondary
                     }
-                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(dotColor))
-                    Spacer(modifier = Modifier.width(5.dp))
+                    Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(dotColor))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = state.proxyMode.label,
                         color = StudioColors.TextPrimary,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Medium
                     )
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = StudioColors.TextSecondary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = StudioColors.TextSecondary, modifier = Modifier.size(13.dp))
                 }
 
                 DropdownMenu(
@@ -263,7 +273,7 @@ fun StudioTitleBar(
                                 Text(
                                     mode.label,
                                     color = if (mode == state.proxyMode) StudioColors.Primary else StudioColors.TextPrimary,
-                                    fontSize = 12.sp
+                                    fontSize = 11.sp
                                 )
                             },
                             onClick = {
@@ -275,9 +285,7 @@ fun StudioTitleBar(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Canvas Aspect Ratio Dropdown
+            // Canvas Aspect Ratio Dropdown (Compact format e.g. 16:9, 9:16)
             Box {
                 Row(
                     modifier = Modifier
@@ -285,20 +293,28 @@ fun StudioTitleBar(
                         .background(StudioColors.SurfaceCard)
                         .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
                         .clickable { ratioDropdownOpen = true }
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                        .padding(horizontal = 7.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val shortLabel = when (state.aspectRatio) {
+                        CanvasAspectRatio.LANDSCAPE_16_9 -> "16:9"
+                        CanvasAspectRatio.PORTRAIT_9_16 -> "9:16"
+                        CanvasAspectRatio.SQUARE_1_1 -> "1:1"
+                        CanvasAspectRatio.CINEMA_21_9 -> "21:9"
+                        CanvasAspectRatio.UHD_4K -> "4K UHD"
+                        CanvasAspectRatio.QHD_2K -> "2K QHD"
+                    }
                     Text(
-                        text = state.aspectRatio.label,
+                        text = shortLabel,
                         color = StudioColors.TextPrimary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Icon(
                         Icons.Default.ArrowDropDown,
                         contentDescription = "Dropdown",
                         tint = StudioColors.TextSecondary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                 }
 
@@ -313,7 +329,7 @@ fun StudioTitleBar(
                                 Text(
                                     ratio.label,
                                     color = if (ratio == state.aspectRatio) StudioColors.Primary else StudioColors.TextPrimary,
-                                    fontSize = 12.sp
+                                    fontSize = 11.sp
                                 )
                             },
                             onClick = {
@@ -325,15 +341,17 @@ fun StudioTitleBar(
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Luxury Gradient Export Button
+            // Prominent Gradient Export Button
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(StudioColors.ExportGradient)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF7C3AED), Color(0xFF6366F1))
+                        )
+                    )
                     .clickable(onClick = onExportClick)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -341,13 +359,13 @@ fun StudioTitleBar(
                         Icons.Default.FileDownload,
                         contentDescription = "Export",
                         tint = Color.White,
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = "Export 4K/60",
+                        text = "Export 4K",
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp
                     )
@@ -370,18 +388,18 @@ private fun TitleBarToolPill(
             .background(StudioColors.SurfaceCard)
             .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 5.dp),
+            .padding(horizontal = 7.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(13.dp))
-        Spacer(modifier = Modifier.width(5.dp))
+        Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(12.dp))
+        Spacer(modifier = Modifier.width(4.dp))
         Text(label, color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
     }
 }
 
 private fun saveProjectDialog(state: StudioProjectState) {
     try {
-        val dialog = FileDialog(null as Frame?, "প্রজেক্ট সেভ করুন (.nora)", FileDialog.SAVE)
+        val dialog = FileDialog(null as Frame?, "Save Project File (.nora)", FileDialog.SAVE)
         dialog.file = "${state.projectName}.nora"
         dialog.isVisible = true
         val file = dialog.file
@@ -394,7 +412,7 @@ private fun saveProjectDialog(state: StudioProjectState) {
 
 private fun openProjectDialog(state: StudioProjectState) {
     try {
-        val dialog = FileDialog(null as Frame?, "প্রজেক্ট ফাইল ওপেন করুন (.nora)", FileDialog.LOAD)
+        val dialog = FileDialog(null as Frame?, "Open Project File (.nora)", FileDialog.LOAD)
         dialog.isVisible = true
         val file = dialog.file
         val dir = dialog.directory
