@@ -39,6 +39,7 @@ compose.desktop {
             windows {
                 menuGroup = "NoraCraft"
                 upgradeUuid = "d734cf28-7654-469b-8c88-5c4d16857134"
+                iconFile.set(project.file("src/main/resources/icon.ico"))
             }
         }
     }

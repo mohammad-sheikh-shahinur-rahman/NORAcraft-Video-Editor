@@ -199,7 +199,7 @@ class StudioProjectState {
     // Workspace Panel Layout Dimensions (Resizable splitters)
     var leftPanelWidth by mutableFloatStateOf(320f)
     var rightPanelWidth by mutableFloatStateOf(330f)
-    var timelineHeight by mutableFloatStateOf(290f)
+    var timelineHeight by mutableFloatStateOf(295f)
 
     // Media Bin
     val mediaAssets = mutableStateListOf<MediaAsset>()

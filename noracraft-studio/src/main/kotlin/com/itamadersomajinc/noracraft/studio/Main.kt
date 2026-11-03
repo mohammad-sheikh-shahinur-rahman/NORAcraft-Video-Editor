@@ -7,6 +7,7 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -23,9 +24,11 @@ fun main() = application {
         }
     }
 
+    val appIcon = painterResource("icon.png")
+
     val windowState = rememberWindowState(
-        width = 1520.dp,
-        height = 940.dp,
+        width = 1420.dp,
+        height = 820.dp,
         position = WindowPosition.PlatformDefault
     )
 
@@ -33,6 +36,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         state = windowState,
         title = "NoraCraft Studio — Professional Video Editor (v1.0.0 Pro 64-Bit)",
+        icon = appIcon,
         onKeyEvent = { event ->
             if (event.type == KeyEventType.KeyDown) {
                 when {
@@ -107,7 +111,8 @@ fun main() = application {
         Window(
             onCloseRequest = { projectState.isDualMonitorOpen = false },
             state = secondaryWindowState,
-            title = "NoraCraft Studio — 4K HDR Live Program Monitor (Display 2)"
+            title = "NoraCraft Studio — 4K HDR Live Program Monitor (Display 2)",
+            icon = appIcon
         ) {
             window.minimumSize = Dimension(800, 500)
             com.itamadersomajinc.noracraft.studio.ui.components.DualMonitorWindowContent(state = projectState)

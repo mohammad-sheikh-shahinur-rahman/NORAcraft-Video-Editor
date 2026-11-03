@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,8 @@ fun MultiTrackTimeline(
     state: StudioProjectState,
     modifier: Modifier = Modifier
 ) {
+    val verticalScrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -78,11 +81,11 @@ fun MultiTrackTimeline(
 
         // Main Timeline Scroll Container (Headers on Left + Canvas on Right)
         Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // Track Headers Column (Fixed on Left)
-            TrackHeadersColumn(state)
+            // Track Headers Column (Fixed on Left, vertically scrollable)
+            TrackHeadersColumn(state, verticalScrollState)
 
-            // Timeline Lanes Canvas (Horizontally Scrollable)
-            TimelineLanesCanvas(state, modifier = Modifier.weight(1f))
+            // Timeline Lanes Canvas (Horizontally & Vertically Scrollable)
+            TimelineLanesCanvas(state, verticalScrollState, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -193,7 +196,10 @@ private fun TimelineToolbar(state: StudioProjectState) {
 }
 
 @Composable
-private fun TrackHeadersColumn(state: StudioProjectState) {
+private fun TrackHeadersColumn(
+    state: StudioProjectState,
+    verticalScrollState: androidx.compose.foundation.ScrollState
+) {
     Column(
         modifier = Modifier
             .width(170.dp)
@@ -201,11 +207,11 @@ private fun TrackHeadersColumn(state: StudioProjectState) {
             .background(StudioColors.SurfaceDark)
             .border(width = 1.dp, color = StudioColors.SurfaceBorder)
     ) {
-        // Ruler alignment spacer
+        // Ruler alignment spacer (fixed 24dp)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(26.dp)
+                .height(24.dp)
                 .background(StudioColors.SurfaceHeader)
                 .border(width = 1.dp, color = StudioColors.SurfaceBorder),
             contentAlignment = Alignment.CenterStart
@@ -213,47 +219,54 @@ private fun TrackHeadersColumn(state: StudioProjectState) {
             Text("Tracks", color = StudioColors.TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
         }
 
-        // Track Labels
-        state.tracks.forEach { track ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .background(StudioColors.SurfaceDark)
-                    .border(width = 1.dp, color = StudioColors.SurfaceBorder)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                    val icon = when (track.kind) {
-                        TrackKind.VIDEO -> Icons.Default.Movie
-                        TrackKind.AUDIO -> Icons.Default.Audiotrack
-                        TrackKind.SUBTITLE -> Icons.Default.Subtitles
-                        TrackKind.EFFECT -> Icons.Default.FlashOn
+        // Vertically Scrollable Track Labels
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(verticalScrollState)
+        ) {
+            state.tracks.forEach { track ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .background(StudioColors.SurfaceDark)
+                        .border(width = 1.dp, color = StudioColors.SurfaceBorder)
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        val icon = when (track.kind) {
+                            TrackKind.VIDEO -> Icons.Default.Movie
+                            TrackKind.AUDIO -> Icons.Default.Audiotrack
+                            TrackKind.SUBTITLE -> Icons.Default.Subtitles
+                            TrackKind.EFFECT -> Icons.Default.FlashOn
+                        }
+                        Icon(icon, contentDescription = null, tint = getTrackColor(track.kind), modifier = Modifier.size(13.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Column {
+                            Text(track.name, color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(track.kind.name, color = getTrackColor(track.kind), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
-                    Icon(icon, contentDescription = null, tint = getTrackColor(track.kind), modifier = Modifier.size(13.dp))
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Column {
-                        Text(track.name, color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(track.kind.name, color = getTrackColor(track.kind), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        if (track.isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = "Mute",
-                        tint = StudioColors.TextSecondary,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Icon(
-                        if (track.isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                        contentDescription = "Lock",
-                        tint = StudioColors.TextSecondary,
-                        modifier = Modifier.size(12.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            if (track.isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "Mute",
+                            tint = StudioColors.TextSecondary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Icon(
+                            if (track.isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                            contentDescription = "Lock",
+                            tint = StudioColors.TextSecondary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
         }
@@ -263,31 +276,36 @@ private fun TrackHeadersColumn(state: StudioProjectState) {
 @Composable
 private fun TimelineLanesCanvas(
     state: StudioProjectState,
+    verticalScrollState: androidx.compose.foundation.ScrollState,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    val horizontalScrollState = rememberScrollState()
     val totalWidthPx = (state.totalDurationMs / 100 * state.timelineZoom).toInt().coerceAtLeast(1600)
 
     Box(
         modifier = modifier
             .fillMaxHeight()
             .background(Color(0xFF090A0E))
-            .horizontalScroll(scrollState)
-            .pointerInput(state.totalDurationMs, state.timelineZoom) {
-                detectTapGestures { offset ->
-                    val clickedTimeMs = (offset.x / (10 * state.timelineZoom) * 1000).toLong()
-                    state.seekTo(clickedTimeMs)
-                }
-            }
+            .horizontalScroll(horizontalScrollState)
     ) {
-        Column(modifier = Modifier.width(totalWidthPx.dp)) {
-            // Swiss Precision Time Ruler at Top
+        Column(
+            modifier = Modifier
+                .width(totalWidthPx.dp)
+                .fillMaxHeight()
+        ) {
+            // Swiss Precision Time Ruler at Top (Fixed 24dp)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(26.dp)
+                    .height(24.dp)
                     .background(StudioColors.TimeRuler)
-                    .border(1.dp, StudioColors.SurfaceBorder),
+                    .border(1.dp, StudioColors.SurfaceBorder)
+                    .pointerInput(state.totalDurationMs, state.timelineZoom) {
+                        detectTapGestures { offset ->
+                            val clickedTimeMs = (offset.x / (10 * state.timelineZoom) * 1000).toLong()
+                            state.seekTo(clickedTimeMs)
+                        }
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val stepSeconds = 5
@@ -309,43 +327,59 @@ private fun TimelineLanesCanvas(
                 }
             }
 
-            // Track Lanes
-            state.tracks.forEach { track ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .background(Color(0xFF0C0D12))
-                        .border(0.5.dp, StudioColors.SurfaceBorder.copy(alpha = 0.5f))
-                ) {
-                    track.clips.forEach { clip ->
-                        TimelineClipCard(
-                            clip = clip,
-                            isSelected = clip.id == state.selectedClipId,
-                            zoom = state.timelineZoom,
-                            onClick = { state.selectClip(clip.id) },
-                            onDrag = { deltaMs ->
-                                val newStart = (clip.startMs + deltaMs).coerceAtLeast(0L)
-                                val updated = clip.copy(startMs = newStart)
-                                state.updateSelectedClip(updated)
+            // Vertically Scrollable Track Lanes Container
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(verticalScrollState)
+                    .pointerInput(state.totalDurationMs, state.timelineZoom) {
+                        detectTapGestures { offset ->
+                            val clickedTimeMs = (offset.x / (10 * state.timelineZoom) * 1000).toLong()
+                            state.seekTo(clickedTimeMs)
+                        }
+                    }
+            ) {
+                // Track Lanes
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    state.tracks.forEach { track ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp)
+                                .background(Color(0xFF0C0D12))
+                                .border(0.5.dp, StudioColors.SurfaceBorder.copy(alpha = 0.5f))
+                        ) {
+                            track.clips.forEach { clip ->
+                                TimelineClipCard(
+                                    clip = clip,
+                                    isSelected = clip.id == state.selectedClipId,
+                                    zoom = state.timelineZoom,
+                                    onClick = { state.selectClip(clip.id) },
+                                    onDrag = { deltaMs ->
+                                        val newStart = (clip.startMs + deltaMs).coerceAtLeast(0L)
+                                        val updated = clip.copy(startMs = newStart)
+                                        state.updateSelectedClip(updated)
+                                    }
+                                )
                             }
+                        }
+                    }
+                }
+
+                // Music Beat Markers (Neon Pink Vertical Rhythm Lines)
+                if (state.beatMarkers.isNotEmpty()) {
+                    state.beatMarkers.forEach { beatMs ->
+                        val beatOffset = (beatMs / 100 * state.timelineZoom).dp
+                        Box(
+                            modifier = Modifier
+                                .offset { IntOffset(beatOffset.roundToPx(), 0) }
+                                .width(1.5.dp)
+                                .fillMaxHeight()
+                                .background(Color(0xFFFF4081).copy(alpha = 0.55f))
                         )
                     }
                 }
-            }
-        }
-
-        // Music Beat Markers (Neon Pink Vertical Rhythm Lines)
-        if (state.beatMarkers.isNotEmpty()) {
-            state.beatMarkers.forEach { beatMs ->
-                val beatOffset = (beatMs / 100 * state.timelineZoom).dp
-                Box(
-                    modifier = Modifier
-                        .offset { IntOffset(beatOffset.roundToPx(), 0) }
-                        .width(1.5.dp)
-                        .fillMaxHeight()
-                        .background(Color(0xFFFF4081).copy(alpha = 0.55f))
-                )
             }
         }
 
@@ -391,9 +425,9 @@ private fun TimelineClipCard(
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(clipOffset.roundToPx(), 4.dp.roundToPx()) }
+            .offset { IntOffset(clipOffset.roundToPx(), 3.dp.roundToPx()) }
             .width(clipWidth)
-            .height(44.dp)
+            .height(40.dp)
             .shadow(if (isSelected) 6.dp else 2.dp, RoundedCornerShape(5.dp))
             .clip(RoundedCornerShape(5.dp))
             .background(gradient)
@@ -406,7 +440,7 @@ private fun TimelineClipCard(
                     onDrag(deltaMs)
                 }
             }
-            .padding(horizontal = 6.dp, vertical = 3.dp)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
