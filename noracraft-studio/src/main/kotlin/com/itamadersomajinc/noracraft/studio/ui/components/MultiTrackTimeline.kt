@@ -20,16 +20,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Diamond
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material3.Icon
@@ -41,8 +46,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -64,7 +72,7 @@ fun MultiTrackTimeline(
             .background(StudioColors.SurfaceDark)
             .border(width = 1.dp, color = StudioColors.SurfaceBorder)
     ) {
-        // Timeline Header Toolbar
+        // Modern NLE Timeline Toolbar
         TimelineToolbar(state)
 
         // Main Timeline Scroll Container (Headers on Left + Canvas on Right)
@@ -83,83 +91,103 @@ private fun TimelineToolbar(state: StudioProjectState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(38.dp)
-            .background(StudioColors.SurfaceCard)
-            .padding(horizontal = 12.dp),
+            .height(42.dp)
+            .background(StudioColors.SurfaceHeader)
+            .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // Left Editing Tools: Razor Cut (C), Delete (Del), Duplicate (Ctrl+D)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                onClick = { state.splitClipAtPlayhead() },
-                modifier = Modifier.size(28.dp)
+            // Razor Cut Tool Button
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(StudioColors.Primary.copy(alpha = 0.15f))
+                    .border(1.dp, StudioColors.Primary.copy(alpha = 0.35f), RoundedCornerShape(6.dp))
+                    .clickable { state.splitClipAtPlayhead() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.ContentCut, contentDescription = "Cut (C)", tint = StudioColors.Primary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.ContentCut, contentDescription = "Cut (C)", tint = StudioColors.Primary, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("কাট [C]", color = StudioColors.TextWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
-            Text("কাট [C]", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            IconButton(
-                onClick = { state.deleteSelectedClip() },
-                modifier = Modifier.size(28.dp),
-                enabled = state.selectedClipId != null
+            // Delete Tool Button
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (state.selectedClipId != null) StudioColors.Error.copy(alpha = 0.15f) else StudioColors.SurfaceCard)
+                    .border(1.dp, if (state.selectedClipId != null) StudioColors.Error.copy(alpha = 0.35f) else StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
+                    .clickable(enabled = state.selectedClipId != null) { state.deleteSelectedClip() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
                     tint = if (state.selectedClipId != null) StudioColors.Error else StudioColors.TextMuted,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("ডিলিট [Del]", color = if (state.selectedClipId != null) StudioColors.TextWhite else StudioColors.TextMuted, fontSize = 11.sp)
             }
-            Text("ডিলিট [Del]", color = if (state.selectedClipId != null) StudioColors.TextPrimary else StudioColors.TextMuted, fontSize = 11.sp)
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            IconButton(
-                onClick = { state.duplicateSelectedClip() },
-                modifier = Modifier.size(28.dp),
-                enabled = state.selectedClipId != null
+            // Duplicate Tool Button
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (state.selectedClipId != null) StudioColors.Secondary.copy(alpha = 0.15f) else StudioColors.SurfaceCard)
+                    .border(1.dp, if (state.selectedClipId != null) StudioColors.Secondary.copy(alpha = 0.35f) else StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
+                    .clickable(enabled = state.selectedClipId != null) { state.duplicateSelectedClip() }
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     Icons.Default.ContentCopy,
                     contentDescription = "Duplicate",
                     tint = if (state.selectedClipId != null) StudioColors.Secondary else StudioColors.TextMuted,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(13.dp)
                 )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("ডুপ্লিকেট [Ctrl+D]", color = if (state.selectedClipId != null) StudioColors.TextWhite else StudioColors.TextMuted, fontSize = 11.sp)
             }
-            Text("ডুপ্লিকেট [Ctrl+D]", color = if (state.selectedClipId != null) StudioColors.TextPrimary else StudioColors.TextMuted, fontSize = 11.sp)
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Snapping Toggle
+            // Magnetic Snapping Toggle Pill
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(if (state.magnetSnapping) StudioColors.Primary.copy(alpha = 0.2f) else Color.Transparent)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (state.magnetSnapping) Color(0xFF1E293B) else Color.Transparent)
+                    .border(1.dp, if (state.magnetSnapping) StudioColors.Secondary.copy(alpha = 0.4f) else StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
                     .clickable { state.magnetSnapping = !state.magnetSnapping }
-                    .padding(horizontal = 6.dp, vertical = 3.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.FlashOn, contentDescription = "Snapping", tint = if (state.magnetSnapping) StudioColors.Primary else StudioColors.TextMuted, modifier = Modifier.size(14.dp))
+                Icon(Icons.Default.FlashOn, contentDescription = "Snapping", tint = if (state.magnetSnapping) StudioColors.Secondary else StudioColors.TextMuted, modifier = Modifier.size(13.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("ম্যাগনেট স্ন্যাপিং", color = if (state.magnetSnapping) StudioColors.Primary else StudioColors.TextMuted, fontSize = 10.sp)
+                Text("ম্যাগনেট স্ন্যাপ", color = if (state.magnetSnapping) StudioColors.Secondary else StudioColors.TextMuted, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
         // Right Timeline Zoom Slider
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ZoomOut, contentDescription = "Zoom Out", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Slider(
                 value = state.timelineZoom,
                 onValueChange = { state.timelineZoom = it },
                 valueRange = 0.5f..3.0f,
-                modifier = Modifier.width(110.dp),
+                modifier = Modifier.width(120.dp),
                 colors = SliderDefaults.colors(thumbColor = StudioColors.Primary, activeTrackColor = StudioColors.Primary)
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Icon(Icons.Default.ZoomIn, contentDescription = "Zoom In", tint = StudioColors.TextSecondary, modifier = Modifier.size(15.dp))
         }
     }
@@ -169,7 +197,7 @@ private fun TimelineToolbar(state: StudioProjectState) {
 private fun TrackHeadersColumn(state: StudioProjectState) {
     Column(
         modifier = Modifier
-            .width(165.dp)
+            .width(175.dp)
             .fillMaxHeight()
             .background(StudioColors.SurfaceDark)
             .border(width = 1.dp, color = StudioColors.SurfaceBorder)
@@ -178,12 +206,12 @@ private fun TrackHeadersColumn(state: StudioProjectState) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(26.dp)
-                .background(StudioColors.SurfaceDark)
+                .height(28.dp)
+                .background(StudioColors.SurfaceHeader)
                 .border(width = 1.dp, color = StudioColors.SurfaceBorder),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text("ট্র্যাক লিস্ট", color = StudioColors.TextMuted, fontSize = 10.sp, modifier = Modifier.padding(start = 8.dp))
+            Text("ট্র্যাক লিস্ট (Tracks)", color = StudioColors.TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
         }
 
         // Track Labels
@@ -191,30 +219,41 @@ private fun TrackHeadersColumn(state: StudioProjectState) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .height(56.dp)
+                    .background(StudioColors.SurfaceDark)
                     .border(width = 1.dp, color = StudioColors.SurfaceBorder)
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(track.name, color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                    Text(track.kind.name, color = getTrackColor(track.kind), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    val icon = when (track.kind) {
+                        TrackKind.VIDEO -> Icons.Default.Movie
+                        TrackKind.AUDIO -> Icons.Default.Audiotrack
+                        TrackKind.SUBTITLE -> Icons.Default.Subtitles
+                        TrackKind.EFFECT -> Icons.Default.FlashOn
+                    }
+                    Icon(icon, contentDescription = null, tint = getTrackColor(track.kind), modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Column {
+                        Text(track.name, color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                        Text(track.kind.name, color = getTrackColor(track.kind), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
 
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         if (track.isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = "Mute",
                         tint = StudioColors.TextSecondary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         if (track.isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
                         contentDescription = "Lock",
                         tint = StudioColors.TextSecondary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                 }
             }
@@ -228,12 +267,12 @@ private fun TimelineLanesCanvas(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
-    val totalWidthPx = (state.totalDurationMs / 100 * state.timelineZoom).toInt().coerceAtLeast(1400)
+    val totalWidthPx = (state.totalDurationMs / 100 * state.timelineZoom).toInt().coerceAtLeast(1600)
 
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .background(StudioColors.Background)
+            .background(Color(0xFF090A0E))
             .horizontalScroll(scrollState)
             .pointerInput(state.totalDurationMs, state.timelineZoom) {
                 detectTapGestures { offset ->
@@ -243,11 +282,11 @@ private fun TimelineLanesCanvas(
             }
     ) {
         Column(modifier = Modifier.width(totalWidthPx.dp)) {
-            // Time Ruler at Top
+            // Swiss Precision Time Ruler at Top
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(26.dp)
+                    .height(28.dp)
                     .background(StudioColors.TimeRuler)
                     .border(1.dp, StudioColors.SurfaceBorder),
                 verticalAlignment = Alignment.CenterVertically
@@ -257,12 +296,15 @@ private fun TimelineLanesCanvas(
                 for (i in 0..count) {
                     val sec = i * stepSeconds
                     val markWidth = (50 * state.timelineZoom).dp
-                    Box(modifier = Modifier.width(markWidth)) {
+                    Row(modifier = Modifier.width(markWidth), verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.width(1.5.dp).height(12.dp).background(Color(0xFF4B5563)))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "%02d:%02d".format(sec / 60, sec % 60),
                             color = StudioColors.TextSecondary,
                             fontSize = 10.sp,
-                            modifier = Modifier.padding(start = 4.dp)
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -273,8 +315,9 @@ private fun TimelineLanesCanvas(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
-                        .border(1.dp, StudioColors.SurfaceBorder.copy(alpha = 0.5f))
+                        .height(56.dp)
+                        .background(Color(0xFF0C0D12))
+                        .border(0.5.dp, StudioColors.SurfaceBorder.copy(alpha = 0.5f))
                 ) {
                     track.clips.forEach { clip ->
                         TimelineClipCard(
@@ -293,15 +336,44 @@ private fun TimelineLanesCanvas(
             }
         }
 
-        // Cyan Scrubber Line (Playhead)
+        // Music Beat Markers (Neon Pink Vertical Rhythm Lines)
+        if (state.beatMarkers.isNotEmpty()) {
+            state.beatMarkers.forEach { beatMs ->
+                val beatOffset = (beatMs / 100 * state.timelineZoom).dp
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(beatOffset.roundToPx(), 0) }
+                        .width(1.5.dp)
+                        .fillMaxHeight()
+                        .background(Color(0xFFFF4081).copy(alpha = 0.55f))
+                )
+            }
+        }
+
+        // High-Precision Glowing Cyan Playhead Needle & Line
         val playheadOffset = (state.currentTimeMs / 100 * state.timelineZoom).dp
         Box(
             modifier = Modifier
-                .offset { IntOffset(playheadOffset.roundToPx(), 0) }
-                .width(2.dp)
+                .offset { IntOffset(playheadOffset.roundToPx() - 6.dp.roundToPx(), 0) }
+                .width(14.dp)
                 .fillMaxHeight()
-                .background(StudioColors.Playhead)
-        )
+        ) {
+            // Top Diamond Head
+            Box(
+                modifier = Modifier
+                    .size(14.dp, 16.dp)
+                    .clip(RoundedCornerShape(bottomStart = 7.dp, bottomEnd = 7.dp))
+                    .background(StudioColors.Playhead)
+            )
+            // Vertical 2px Glowing Line
+            Box(
+                modifier = Modifier
+                    .offset(x = 6.dp)
+                    .width(2.dp)
+                    .fillMaxHeight()
+                    .background(StudioColors.Playhead)
+            )
+        }
     }
 }
 
@@ -314,17 +386,18 @@ private fun TimelineClipCard(
     onDrag: (Long) -> Unit
 ) {
     val clipOffset = (clip.startMs / 100 * zoom).dp
-    val clipWidth = (clip.durationMs / 100 * zoom).dp.coerceAtLeast(40.dp)
-    val color = getTrackColor(clip.trackKind)
-    val borderColor = if (isSelected) Color.White else color.copy(alpha = 0.8f)
+    val clipWidth = (clip.durationMs / 100 * zoom).dp.coerceAtLeast(42.dp)
+    val gradient = getClipGradient(clip.trackKind)
+    val borderColor = if (isSelected) Color(0xFFFFFFFF) else Color(0x33FFFFFF)
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(clipOffset.roundToPx(), 4.dp.roundToPx()) }
+            .offset { IntOffset(clipOffset.roundToPx(), 5.dp.roundToPx()) }
             .width(clipWidth)
-            .height(44.dp)
+            .height(46.dp)
+            .shadow(if (isSelected) 8.dp else 2.dp, RoundedCornerShape(6.dp))
             .clip(RoundedCornerShape(6.dp))
-            .background(color.copy(alpha = 0.35f))
+            .background(gradient)
             .border(if (isSelected) 2.dp else 1.dp, borderColor, RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
             .pointerInput(clip.id, zoom) {
@@ -334,9 +407,9 @@ private fun TimelineClipCard(
                     onDrag(deltaMs)
                 }
             }
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+        Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
             val titleText = if (clip.trackKind == TrackKind.SUBTITLE && clip.textStyle.text.isNotBlank()) {
                 clip.textStyle.text
             } else {
@@ -345,29 +418,55 @@ private fun TimelineClipCard(
             Text(
                 text = titleText,
                 color = Color.White,
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
 
-            // Styled Waveform or Duration tag
-            if (clip.trackKind == TrackKind.AUDIO) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    repeat(12) { i ->
-                        val h = ((i % 4) + 2) * 2
-                        Box(modifier = Modifier.width(2.dp).height(h.dp).background(StudioColors.TrackAudio))
+            // Dynamic Waveform or Duration Badge
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (clip.trackKind == TrackKind.AUDIO) {
+                    Row(
+                        modifier = Modifier.weight(1f).height(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        repeat(16) { i ->
+                            val h = ((i % 5) + 2) * 2.5f
+                            Box(modifier = Modifier.width(2.dp).height(h.dp).clip(RoundedCornerShape(1.dp)).background(Color(0xDDFFFFFF)))
+                        }
+                    }
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.size(4.dp).clip(CircleShape).background(Color(0xAAFFFFFF)))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${clip.durationMs / 1000}s",
+                            color = Color(0xDDFFFFFF),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
-            } else {
-                Text(
-                    text = "${clip.durationMs / 1000}s",
-                    color = StudioColors.TextSecondary,
-                    fontSize = 9.sp
-                )
+
+                // Keyframe Golden Diamond Badge
+                val keyCount = clip.keyframes.scaleKeys.size + clip.keyframes.opacityKeys.size
+                if (keyCount > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Diamond,
+                            contentDescription = "Keyframe",
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(11.dp)
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("$keyCount", color = Color(0xFFFFD700), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -375,9 +474,18 @@ private fun TimelineClipCard(
 
 private fun getTrackColor(kind: TrackKind): Color {
     return when (kind) {
-        TrackKind.VIDEO -> StudioColors.TrackVideo
-        TrackKind.AUDIO -> StudioColors.TrackAudio
-        TrackKind.SUBTITLE -> StudioColors.TrackSubtitle
-        TrackKind.EFFECT -> StudioColors.TrackEffect
+        TrackKind.VIDEO -> Color(0xFF60A5FA)
+        TrackKind.AUDIO -> Color(0xFF34D399)
+        TrackKind.SUBTITLE -> Color(0xFFFBBF24)
+        TrackKind.EFFECT -> Color(0xFFA78BFA)
+    }
+}
+
+private fun getClipGradient(kind: TrackKind): Brush {
+    return when (kind) {
+        TrackKind.VIDEO -> StudioColors.VideoClipGradient
+        TrackKind.AUDIO -> StudioColors.AudioClipGradient
+        TrackKind.SUBTITLE -> StudioColors.SubtitleClipGradient
+        TrackKind.EFFECT -> StudioColors.PrimaryGradient
     }
 }

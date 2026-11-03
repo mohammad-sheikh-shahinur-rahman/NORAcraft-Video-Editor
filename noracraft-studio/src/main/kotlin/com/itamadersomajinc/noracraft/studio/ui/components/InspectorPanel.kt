@@ -1,8 +1,10 @@
 package com.itamadersomajinc.noracraft.studio.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +21,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Diamond
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Transform
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -44,15 +51,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.itamadersomajinc.noracraft.studio.state.BlendModeOption
+import com.itamadersomajinc.noracraft.studio.state.ColorWheelVal
+import com.itamadersomajinc.noracraft.studio.state.KeyframePoint
 import com.itamadersomajinc.noracraft.studio.state.StudioClip
 import com.itamadersomajinc.noracraft.studio.state.StudioProjectState
 import com.itamadersomajinc.noracraft.studio.state.TrackKind
 import com.itamadersomajinc.noracraft.studio.ui.theme.StudioColors
+import java.awt.FileDialog
+import java.awt.Frame
 
 @Composable
 fun InspectorPanel(
@@ -72,21 +87,27 @@ fun InspectorPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(StudioColors.SurfaceCard)
-                .padding(4.dp),
+                .padding(2.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            InspectorTabButton("transform", "ট্রান্সফর্ম", Icons.Default.Transform, state.inspectorTab == "transform") {
+            InspectorTabButton("transform", "মোশন", Icons.Default.Transform, state.inspectorTab == "transform") {
                 state.inspectorTab = "transform"
             }
-            InspectorTabButton("color", "কালার গ্রেডিং", Icons.Default.ColorLens, state.inspectorTab == "color") {
+            InspectorTabButton("color", "LUTs", Icons.Default.ColorLens, state.inspectorTab == "color") {
                 state.inspectorTab = "color"
             }
+            InspectorTabButton("wheels", "হুইলস", Icons.Default.Tune, state.inspectorTab == "wheels") {
+                state.inspectorTab = "wheels"
+            }
+            InspectorTabButton("chromakey", "ক্রোমা/AI", Icons.Default.AutoAwesome, state.inspectorTab == "chromakey") {
+                state.inspectorTab = "chromakey"
+            }
             if (selectedClip?.trackKind == TrackKind.SUBTITLE) {
-                InspectorTabButton("text", "বাংলা টেক্সট", Icons.Default.TextFields, state.inspectorTab == "text") {
+                InspectorTabButton("text", "টেক্সট", Icons.Default.TextFields, state.inspectorTab == "text") {
                     state.inspectorTab = "text"
                 }
             }
-            InspectorTabButton("audio", "অডিও", Icons.Default.VolumeUp, state.inspectorTab == "audio") {
+            InspectorTabButton("audio", "অডিও", Icons.AutoMirrored.Filled.VolumeUp, state.inspectorTab == "audio") {
                 state.inspectorTab = "audio"
             }
         }
@@ -99,7 +120,7 @@ fun InspectorPanel(
                 .verticalScroll(rememberScrollState())
         ) {
             if (selectedClip == null) {
-                // Project Summary
+                // Project Summary Card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -116,18 +137,19 @@ fun InspectorPanel(
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         PropertyItem(label = "প্রজেক্ট নাম", value = state.projectName)
-                        PropertyItem(label = "রেজোলিউশন", value = "${state.aspectRatio.width}x${state.aspectRatio.height}")
+                        PropertyItem(label = "রেজোলিউশন", value = "${state.aspectRatio.width}×${state.aspectRatio.height}")
                         PropertyItem(label = "রেশিও", value = state.aspectRatio.label)
                         PropertyItem(label = "ফ্রেমরেট", value = "${state.fps} FPS")
+                        PropertyItem(label = "প্রক্সি মোড", value = state.proxyMode.label)
                         PropertyItem(label = "মোট ট্র্যাক", value = "${state.tracks.size} টি")
                     }
                 }
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    "টাইমলাইনে যেকোনো ক্লিপ সিলেক্ট করলে এখানে তার ট্রান্সফর্ম, কালার ও অডিও কন্ট্রোল সক্রিয় হবে।",
+                    "টাইমলাইনে যেকোনো ভিডিও বা অডিও ক্লিপ সিলেক্ট করলে এখানে ট্রান্সফর্ম, সিনেমাটিক কালার হুইল, 3D LUT, ক্রোমা কি ও AI কাটআউট সক্রিয় হবে।",
                     color = StudioColors.TextMuted,
                     fontSize = 11.sp,
-                    lineHeight = 15.sp
+                    lineHeight = 16.sp
                 )
             } else {
                 // Selected Clip Header Card
@@ -136,7 +158,7 @@ fun InspectorPanel(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
                         .background(StudioColors.SurfaceCard)
-                        .border(1.dp, StudioColors.Primary.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                        .border(1.dp, StudioColors.Primary.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
                         .padding(10.dp)
                 ) {
                     Column {
@@ -148,8 +170,10 @@ fun InspectorPanel(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 when (state.inspectorTab) {
-                    "transform" -> TransformTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
+                    "transform" -> TransformTabContent(selectedClip, state.currentTimeMs, onUpdate = { state.updateSelectedClip(it) })
                     "color" -> ColorGradingTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
+                    "wheels" -> ColorWheelsTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
+                    "chromakey" -> ChromaKeyAndAiCutoutTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
                     "text" -> BanglaTextTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
                     "audio" -> AudioControlTabContent(selectedClip, onUpdate = { state.updateSelectedClip(it) })
                 }
@@ -159,7 +183,13 @@ fun InspectorPanel(
 }
 
 @Composable
-private fun InspectorTabButton(id: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, isSelected: Boolean, onClick: () -> Unit) {
+private fun InspectorTabButton(
+    id: String,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
     val bg = if (isSelected) StudioColors.Primary.copy(alpha = 0.2f) else Color.Transparent
     val tint = if (isSelected) StudioColors.Primary else StudioColors.TextSecondary
 
@@ -168,24 +198,64 @@ private fun InspectorTabButton(id: String, label: String, icon: androidx.compose
             .clip(RoundedCornerShape(6.dp))
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 6.dp),
+            .padding(horizontal = 5.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(13.dp))
-        Spacer(modifier = Modifier.width(4.dp))
+        Icon(icon, contentDescription = label, tint = tint, modifier = Modifier.size(12.dp))
+        Spacer(modifier = Modifier.width(3.dp))
         Text(label, color = tint, fontSize = 10.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
     }
 }
 
+/**
+ * 1. Transform & Keyframing Tab
+ */
 @Composable
-private fun TransformTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit) {
+private fun TransformTabContent(clip: StudioClip, currentTimeMs: Long, onUpdate: (StudioClip) -> Unit) {
     Column {
-        Text("ভিডিও ট্রান্সফর্ম ও মোশন", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("ভিডিও ট্রান্সফর্ম ও কী-ফ্রেম", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            val keyCount = clip.keyframes.scaleKeys.size + clip.keyframes.opacityKeys.size
+            if (keyCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFFFD700).copy(alpha = 0.2f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text("$keyCount কী-ফ্রেম সক্রিয়", color = Color(0xFFFFD700), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Scale
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("স্কেল (Scale)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+        // Scale Slider with Diamond Keyframe Button
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("স্কেল (Scale)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                IconButton(
+                    onClick = {
+                        val keys = clip.keyframes.scaleKeys.toMutableList()
+                        keys.removeAll { it.timeMs == currentTimeMs }
+                        keys.add(KeyframePoint(currentTimeMs, clip.scale))
+                        onUpdate(clip.copy(keyframes = clip.keyframes.copy(scaleKeys = keys)))
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Diamond,
+                        contentDescription = "Keyframe",
+                        tint = if (clip.keyframes.scaleKeys.any { it.timeMs == currentTimeMs }) Color(0xFFFFD700) else StudioColors.TextMuted,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
             Text("${(clip.scale * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Slider(
@@ -207,9 +277,28 @@ private fun TransformTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit
             colors = SliderDefaults.colors(thumbColor = StudioColors.Primary, activeTrackColor = StudioColors.Primary)
         )
 
-        // Opacity
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("অপাসিটি (স্বচ্ছতা)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+        // Opacity with Diamond Keyframe Button
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("অপাসিটি (স্বচ্ছতা)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+                Spacer(modifier = Modifier.width(6.dp))
+                IconButton(
+                    onClick = {
+                        val keys = clip.keyframes.opacityKeys.toMutableList()
+                        keys.removeAll { it.timeMs == currentTimeMs }
+                        keys.add(KeyframePoint(currentTimeMs, clip.opacity))
+                        onUpdate(clip.copy(keyframes = clip.keyframes.copy(opacityKeys = keys)))
+                    },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Diamond,
+                        contentDescription = "Keyframe",
+                        tint = if (clip.keyframes.opacityKeys.any { it.timeMs == currentTimeMs }) Color(0xFFFFD700) else StudioColors.TextMuted,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
             Text("${(clip.opacity * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Slider(
@@ -257,12 +346,90 @@ private fun TransformTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit
     }
 }
 
+/**
+ * 2. Color Grading & 3D LUT (.cube) Tab
+ */
 @Composable
 private fun ColorGradingTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit) {
     val grading = clip.colorGrading
+    var lutDropdownOpen by remember { mutableStateOf(false) }
 
     Column {
-        Text("সিনেমাটিক কালার গ্রেডিং (LUTs & Grading)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Text("3D LUT ফাইল ও কালার গ্রেডিং (.cube)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 3D LUT Presets Selector
+        Text("সিনেমাটিক 3D LUT প্রেসেট (.cube)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(StudioColors.SurfaceCard)
+                    .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(6.dp))
+                    .clickable { lutDropdownOpen = true }
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(grading.lutName, color = StudioColors.TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Icon(Icons.Default.FolderOpen, contentDescription = null, tint = StudioColors.Secondary, modifier = Modifier.size(16.dp))
+            }
+
+            DropdownMenu(
+                expanded = lutDropdownOpen,
+                onDismissRequest = { lutDropdownOpen = false },
+                modifier = Modifier.background(StudioColors.SurfaceCard)
+            ) {
+                val luts = listOf(
+                    "None (Bypass)",
+                    "Teal & Orange Hollywood (.cube)",
+                    "Fuji 400H Film Simulation (.cube)",
+                    "Cyberpunk Neon Tokyo (.cube)",
+                    "Vintage Kodak Portra 400 (.cube)",
+                    "Black & White Noir Film (.cube)"
+                )
+                luts.forEach { lut ->
+                    DropdownMenuItem(
+                        text = { Text(lut, color = if (lut == grading.lutName) StudioColors.Primary else StudioColors.TextPrimary, fontSize = 12.sp) },
+                        onClick = {
+                            onUpdate(clip.copy(colorGrading = grading.copy(lutName = lut)))
+                            lutDropdownOpen = false
+                        }
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("📁 কাস্টম .cube ফাইল লোড করুন...", color = StudioColors.Secondary, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                    onClick = {
+                        try {
+                            val dialog = FileDialog(null as Frame?, "3D LUT (.cube) ফাইল সিলেক্ট করুন", FileDialog.LOAD)
+                            dialog.file = "*.cube"
+                            dialog.isVisible = true
+                            if (dialog.file != null) {
+                                onUpdate(clip.copy(colorGrading = grading.copy(lutName = dialog.file)))
+                            }
+                        } catch (e: Exception) {}
+                        lutDropdownOpen = false
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // LUT Strength
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("LUT তীব্রতা (Strength)", color = StudioColors.TextSecondary, fontSize = 11.sp)
+            Text("${(grading.lutStrength * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+        Slider(
+            value = grading.lutStrength,
+            onValueChange = { onUpdate(clip.copy(colorGrading = grading.copy(lutStrength = it))) },
+            valueRange = 0f..1f,
+            colors = SliderDefaults.colors(thumbColor = StudioColors.Secondary, activeTrackColor = StudioColors.Secondary)
+        )
+
         Spacer(modifier = Modifier.height(10.dp))
 
         // Temperature (Cool to Warm)
@@ -312,6 +479,312 @@ private fun ColorGradingTabContent(clip: StudioClip, onUpdate: (StudioClip) -> U
             valueRange = 0f..100f,
             colors = SliderDefaults.colors(thumbColor = StudioColors.Primary, activeTrackColor = StudioColors.Primary)
         )
+    }
+}
+
+/**
+ * 3. Professional Color Wheels (Lift, Gamma, Gain) Tab
+ */
+@Composable
+private fun ColorWheelsTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit) {
+    val grading = clip.colorGrading
+
+    Column {
+        Text("প্রফেশনাল কালার হুইলস (DaVinci Resolve Style)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 1. Lift (Shadows / অন্ধকার অংশ)
+        ColorWheelWidget(
+            title = "🌑 LIFT (শ্যাডো / Shadows)",
+            wheelVal = grading.lift,
+            tintHint = Color(0xFF64B5F6),
+            onChange = { onUpdate(clip.copy(colorGrading = grading.copy(lift = it))) }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 2. Gamma (Midtones / মাঝারি টোন)
+        ColorWheelWidget(
+            title = "🌓 GAMMA (মিডটোন / Midtones)",
+            wheelVal = grading.gamma,
+            tintHint = Color(0xFFFFB74D),
+            onChange = { onUpdate(clip.copy(colorGrading = grading.copy(gamma = it))) }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 3. Gain (Highlights / উজ্জ্বল অংশ)
+        ColorWheelWidget(
+            title = "🌕 GAIN (হাইলাইট / Highlights)",
+            wheelVal = grading.gain,
+            tintHint = Color(0xFFFFD54F),
+            onChange = { onUpdate(clip.copy(colorGrading = grading.copy(gain = it))) }
+        )
+    }
+}
+
+@Composable
+private fun ColorWheelWidget(
+    title: String,
+    wheelVal: ColorWheelVal,
+    tintHint: Color,
+    onChange: (ColorWheelVal) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(StudioColors.SurfaceCard)
+            .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(8.dp))
+            .padding(10.dp)
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(title, color = tintHint, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                IconButton(
+                    onClick = { onChange(ColorWheelVal()) },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = StudioColors.TextMuted, modifier = Modifier.size(13.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Circular Wheel Canvas
+            Box(
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF0F1117))
+                    .border(1.dp, StudioColors.SurfaceBorder, CircleShape)
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            val r = 45f
+                            val dx = (offset.x - r) / r
+                            val dy = (offset.y - r) / r
+                            val dist = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+                            val clampedDist = dist.coerceIn(0f, 1f)
+                            val angle = Math.atan2(dy.toDouble(), dx.toDouble()).toFloat()
+                            val nx = (Math.cos(angle.toDouble()) * clampedDist).toFloat()
+                            val ny = (Math.sin(angle.toDouble()) * clampedDist).toFloat()
+                            onChange(wheelVal.copy(r = nx * 0.5f, g = ny * 0.5f, b = 0f))
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.size(90.dp)) {
+                    // Concentric Guide Rings
+                    drawCircle(color = Color(0xFF232736), radius = size.minDimension / 2, style = Stroke(width = 1f))
+                    drawCircle(color = Color(0xFF1E212E), radius = size.minDimension / 3, style = Stroke(width = 1f))
+                    // Crosshairs
+                    drawLine(color = Color(0xFF262A3B), start = Offset(size.width / 2, 0f), end = Offset(size.width / 2, size.height), strokeWidth = 1f)
+                    drawLine(color = Color(0xFF262A3B), start = Offset(0f, size.height / 2), end = Offset(size.width, size.height / 2), strokeWidth = 1f)
+                    // Current Position Indicator
+                    val cx = (size.width / 2) + (wheelVal.r * 80f)
+                    val cy = (size.height / 2) + (wheelVal.g * 80f)
+                    drawCircle(color = tintHint, radius = 4.dp.toPx(), center = Offset(cx, cy))
+                    drawCircle(color = Color.White, radius = 2.dp.toPx(), center = Offset(cx, cy))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Brightness / Offset Slider
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("ব্রাইটনেস অফসেট", color = StudioColors.TextMuted, fontSize = 10.sp)
+                Text("%.2f".format(wheelVal.y), color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            Slider(
+                value = wheelVal.y,
+                onValueChange = { onChange(wheelVal.copy(y = it)) },
+                valueRange = -1.0f..1.0f,
+                colors = SliderDefaults.colors(thumbColor = tintHint, activeTrackColor = tintHint)
+            )
+        }
+    }
+}
+
+/**
+ * 4. Chroma Key & AI Cutout Tab
+ */
+@Composable
+private fun ChromaKeyAndAiCutoutTabContent(clip: StudioClip, onUpdate: (StudioClip) -> Unit) {
+    val chroma = clip.chromaKey
+    val ai = clip.aiCutout
+
+    Column {
+        // AI Background Cutout Section
+        Text("🪄 AI স্মার্ট কাটআউট (No Green Screen)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(StudioColors.SurfaceCard)
+                .border(1.dp, if (ai.enabled) StudioColors.Primary else StudioColors.SurfaceBorder, RoundedCornerShape(8.dp))
+                .padding(10.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("এক-ক্লিকে ব্যাকগ্রাউন্ড রিমুভাল", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        Text("গ্রিন স্ক্রিন ছাড়াই মানুষ বা অবজেক্ট আলাদা করুন", color = StudioColors.TextMuted, fontSize = 9.sp)
+                    }
+                    Switch(
+                        checked = ai.enabled,
+                        onCheckedChange = { onUpdate(clip.copy(aiCutout = ai.copy(enabled = it))) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = StudioColors.Primary, checkedTrackColor = StudioColors.Primary.copy(alpha = 0.5f))
+                    )
+                }
+
+                if (ai.enabled) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("কাটআউট মোড", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val modes = listOf("Human (Portrait)", "Face & Head", "Full Body", "Object Focus")
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        modes.forEach { m ->
+                            val isSel = ai.mode == m
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(if (isSel) StudioColors.Primary.copy(alpha = 0.25f) else StudioColors.Background)
+                                    .clickable { onUpdate(clip.copy(aiCutout = ai.copy(mode = m))) }
+                                    .padding(vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(m.substringBefore(" "), color = if (isSel) StudioColors.Primary else StudioColors.TextSecondary, fontSize = 9.sp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("এজ ফেদার (Edge Feather)", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                        Text("${ai.edgeFeather.toInt()}px", color = StudioColors.TextPrimary, fontSize = 10.sp)
+                    }
+                    Slider(
+                        value = ai.edgeFeather,
+                        onValueChange = { onUpdate(clip.copy(aiCutout = ai.copy(edgeFeather = it))) },
+                        valueRange = 0f..20f,
+                        colors = SliderDefaults.colors(thumbColor = StudioColors.Primary, activeTrackColor = StudioColors.Primary)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(StudioColors.Primary.copy(alpha = 0.15f))
+                            .padding(6.dp)
+                    ) {
+                        Text("⚡ DirectML GPU Inference (১০০% অফলাইন ও নিরাপদ)", color = StudioColors.Primary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Chroma Key (Green Screen) Section
+        Text("🟩 ক্রোমা কি স্টুডিও (Green Screen Removal)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(StudioColors.SurfaceCard)
+                .border(1.dp, if (chroma.enabled) StudioColors.Success else StudioColors.SurfaceBorder, RoundedCornerShape(8.dp))
+                .padding(10.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("ক্রোমা কি সক্রিয় করুন", color = StudioColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        Text("আইড্রপার দিয়ে নির্দিষ্ট কালার মুছে ফেলা", color = StudioColors.TextMuted, fontSize = 9.sp)
+                    }
+                    Switch(
+                        checked = chroma.enabled,
+                        onCheckedChange = { onUpdate(clip.copy(chromaKey = chroma.copy(enabled = it))) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = StudioColors.Success, checkedTrackColor = StudioColors.Success.copy(alpha = 0.5f))
+                    )
+                }
+
+                if (chroma.enabled) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("কি কালার সোয়াচ", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val swatches = listOf(
+                            Color(0xFF00FF00) to "Pure Green",
+                            Color(0xFF0055FF) to "Blue Screen",
+                            Color(0xFFFF00FF) to "Magenta"
+                        )
+                        swatches.forEach { (c, _) ->
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(c)
+                                    .border(if (chroma.keyColor == c) 2.dp else 1.dp, Color.White, CircleShape)
+                                    .clickable { onUpdate(clip.copy(chromaKey = chroma.copy(keyColor = c))) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Similarity
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("সিমিলারিটি (Similarity)", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                        Text("${(chroma.similarity * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 10.sp)
+                    }
+                    Slider(
+                        value = chroma.similarity,
+                        onValueChange = { onUpdate(clip.copy(chromaKey = chroma.copy(similarity = it))) },
+                        valueRange = 0f..1f,
+                        colors = SliderDefaults.colors(thumbColor = StudioColors.Success, activeTrackColor = StudioColors.Success)
+                    )
+
+                    // Smoothness
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("স্মুথনেস (Smoothness)", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                        Text("${(chroma.smoothness * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 10.sp)
+                    }
+                    Slider(
+                        value = chroma.smoothness,
+                        onValueChange = { onUpdate(clip.copy(chromaKey = chroma.copy(smoothness = it))) },
+                        valueRange = 0f..1f,
+                        colors = SliderDefaults.colors(thumbColor = StudioColors.Success, activeTrackColor = StudioColors.Success)
+                    )
+
+                    // Spill Suppression
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("স্পিল সাপ্রেশন (Spill Suppression)", color = StudioColors.TextSecondary, fontSize = 10.sp)
+                        Text("${(chroma.spillSuppression * 100).toInt()}%", color = StudioColors.TextPrimary, fontSize = 10.sp)
+                    }
+                    Slider(
+                        value = chroma.spillSuppression,
+                        onValueChange = { onUpdate(clip.copy(chromaKey = chroma.copy(spillSuppression = it))) },
+                        valueRange = 0f..1f,
+                        colors = SliderDefaults.colors(thumbColor = StudioColors.Success, activeTrackColor = StudioColors.Success)
+                    )
+                }
+            }
+        }
     }
 }
 

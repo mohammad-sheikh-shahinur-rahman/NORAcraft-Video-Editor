@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,8 +25,12 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -72,7 +77,7 @@ fun MediaBinPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(StudioColors.SurfaceCard)
-                .padding(4.dp),
+                .padding(2.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             StudioCategoryTab(
@@ -88,6 +93,12 @@ fun MediaBinPanel(
                 onClick = { state.activeCategory = "audio" }
             )
             StudioCategoryTab(
+                label = "মোশন",
+                icon = Icons.Default.Title,
+                isSelected = state.activeCategory == "motion_titles",
+                onClick = { state.activeCategory = "motion_titles" }
+            )
+            StudioCategoryTab(
                 label = "বাংলা ফন্ট",
                 icon = Icons.Default.FontDownload,
                 isSelected = state.activeCategory == "bangla_fonts",
@@ -98,6 +109,12 @@ fun MediaBinPanel(
                 icon = Icons.Default.AutoAwesome,
                 isSelected = state.activeCategory == "ai_subtitles",
                 onClick = { state.activeCategory = "ai_subtitles" }
+            )
+            StudioCategoryTab(
+                label = "TTS ভয়েস",
+                icon = Icons.Default.RecordVoiceOver,
+                isSelected = state.activeCategory == "tts_studio",
+                onClick = { state.activeCategory = "tts_studio" }
             )
         }
 
@@ -113,8 +130,10 @@ fun MediaBinPanel(
             when (state.activeCategory) {
                 "media" -> MediaTabContent(state)
                 "audio" -> AudioTabContent(state)
+                "motion_titles" -> MotionTitlesTabContent(state)
                 "bangla_fonts" -> BanglaFontsTabContent(state)
                 "ai_subtitles" -> AiSubtitlesTabContent(state)
+                "tts_studio" -> BanglaTtsTabContent(state)
             }
         }
     }
@@ -370,6 +389,142 @@ private fun AiSubtitlesTabContent(state: StudioProjectState) {
     }
 }
 
+/**
+ * Motion Graphics & Bangla Animated Lower-Thirds Tab
+ */
+@Composable
+private fun MotionTitlesTabContent(state: StudioProjectState) {
+    val templates = listOf(
+        Triple("🔴 ব্রেকিং নিউজ স্ক্রলার", "ব্রেকিং নিউজ: NoraCraft Studio দিয়ে 4K ভিডিও এডিটিং এখন আরও সহজ!", Color(0xFFD32F2F)),
+        Triple("🔔 ইউটিউব সাবস্ক্রাইব ও বেল", "SUBSCRIBE করুন ও নতুন ভিডিও পেতে বেল আইকনে ক্লিক করুন", Color(0xFFFF0000)),
+        Triple("💎 সিনেমাটিক 3D নিয়ন ইন্ট্রো", "NoraCraft Studio: আল্টিমেট সিনেমাটিক মাস্টারপিস", Color(0xFF00E5FF)),
+        Triple("👤 প্রফেশনাল লোয়ার-থার্ড নেমপ্লেট", "শেখ শাহিনুর রহমান • সিনিয়র ভিডিও এডিটর ও ক্রিয়েটর", Color(0xFF1E293B)),
+        Triple("📱 সোশ্যাল মিডিয়া হ্যান্ডেল বার", "ফেসবুক ও ইনস্টাগ্রামে ফলো করুন: @NoraCraftBD", Color(0xFF8B5CF6)),
+        Triple("🏷️ আধুনিক কার্টুন স্পিচ বাবল", "ওয়াও! দারুণ কালার গ্রেডিং ও আল্ট্রা-স্মুথ 4K প্রিভিউ!", Color(0xFFFFB300))
+    )
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("মোশন গ্রাফিক্স ও লোয়ার-থার্ড", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("ইউটিউব, রিলস ও সোশ্যাল মিডিয়ার জন্য রেডিমেড অ্যানিমেশন", color = StudioColors.TextMuted, fontSize = 10.sp)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+            items(templates) { (title, sampleText, themeColor) ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(StudioColors.SurfaceCard)
+                        .border(1.dp, StudioColors.SurfaceBorder, RoundedCornerShape(8.dp))
+                        .padding(10.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(themeColor)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(title, color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            }
+
+                            Button(
+                                onClick = {
+                                    state.addBanglaSubtitleClip(sampleText, "Kalpurush")
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = StudioColors.Primary),
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = Modifier.height(26.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text("টাইমলাইনে যোগ", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFF0D0F14))
+                                .border(0.5.dp, themeColor.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                sampleText,
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Bangla AI Text-to-Speech Studio Quick Tab
+ */
+@Composable
+private fun BanglaTtsTabContent(state: StudioProjectState) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("বাংলা AI ভয়েসওভার বুথ (TTS)", color = StudioColors.TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("যেকোনো বাংলা লেখা থেকে ১০০% অফলাইনে প্রফেশনাল ডাবিং কণ্ঠ তৈরি", color = StudioColors.TextMuted, fontSize = 10.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(StudioColors.SurfaceCard)
+                .border(1.dp, StudioColors.Primary.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(12.dp)
+        ) {
+            Column {
+                Text("উপলব্ধ অফলাইন কণ্ঠশিল্পীগণ:", color = StudioColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(6.dp))
+                VoiceActorRow("👨 রহিম", "গভীর ও গম্ভীর পুরুষ কণ্ঠ (ডকুমেন্টারি ও ড্রামা)")
+                VoiceActorRow("👩 ফাতেমা", "মিষ্টি ও স্পষ্ট নারী কণ্ঠ (টিউটোরিয়াল ও উপস্থাপনা)")
+                VoiceActorRow("🎙️ তানভীর", "প্রাণবন্ত তরুণ কণ্ঠ (পডকাস্ট ও টেক ভিডিও)")
+                VoiceActorRow("📻 নুসরাত", "ফর্মাল ও প্রফেশনাল নারী কণ্ঠ (সংবাদ ও বিজ্ঞাপন)")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Button(
+            onClick = { state.banglaTtsModalOpen = true },
+            colors = ButtonDefaults.buttonColors(containerColor = StudioColors.Primary),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().height(40.dp)
+        ) {
+            Icon(Icons.Default.RecordVoiceOver, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("ভয়েসওভার স্টুডিও ওপেন করুন", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun VoiceActorRow(name: String, desc: String) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(name, color = StudioColors.TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(desc, color = StudioColors.TextMuted, fontSize = 9.sp, maxLines = 1)
+    }
+}
+
 @Composable
 private fun MediaAssetCard(asset: MediaAsset, onInsertToTimeline: () -> Unit) {
     Row(
@@ -404,7 +559,7 @@ private fun MediaAssetCard(asset: MediaAsset, onInsertToTimeline: () -> Unit) {
             onClick = onInsertToTimeline,
             modifier = Modifier.size(28.dp)
         ) {
-            Icon(Icons.Default.PlaylistAdd, contentDescription = "Insert", tint = StudioColors.Primary, modifier = Modifier.size(18.dp))
+            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Insert", tint = StudioColors.Primary, modifier = Modifier.size(18.dp))
         }
     }
 }

@@ -96,4 +96,21 @@ fun main() = application {
         window.minimumSize = Dimension(1100, 700)
         StudioApp(state = projectState)
     }
+
+    // Secondary Window for Dual Monitor Mode (Display 2 Live 4K Program Output)
+    if (projectState.isDualMonitorOpen) {
+        val secondaryWindowState = rememberWindowState(
+            width = 1180.dp,
+            height = 720.dp,
+            position = WindowPosition.PlatformDefault
+        )
+        Window(
+            onCloseRequest = { projectState.isDualMonitorOpen = false },
+            state = secondaryWindowState,
+            title = "NoraCraft Studio — 4K HDR Live Program Monitor (Display 2)"
+        ) {
+            window.minimumSize = Dimension(800, 500)
+            com.itamadersomajinc.noracraft.studio.ui.components.DualMonitorWindowContent(state = projectState)
+        }
+    }
 }
